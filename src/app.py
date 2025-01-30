@@ -1,7 +1,9 @@
 import time
+import random
 from time import sleep
 import fluidsynth
 
+from drum_phrases import swing_pattern, phrase_one, phrase_two, phrase_three, phrase_four, phrase_five, phrase_six, phrase_seven, phrase_eight
 # Initialize the synthesizer
 fs = fluidsynth.Synth()
 fs.start(driver="coreaudio")
@@ -14,6 +16,7 @@ try:
     fs.program_select(0, sfid, 128, 0)
 except Exception as e:
     print(f"Error loading soundfont: {e}")
+
     
 
 # Start the synthesizer
@@ -22,34 +25,28 @@ except Exception as e:
 
 #fs.sfload(soundfont)
 
-# MIDI note for Ride Cymbal (General MIDI standard)
-RIDE_CYMBAL = 51
-BASS_DRUM = 35
-SNARE_DRUM = 38
-HI_HAT_CLOSED = 42
-
-
 # Function to play the ride cymbal at regular intervals
 def play_ride_cymbal(tempo):
     time_per_beat = 60 / tempo  # Time per quarter note in seconds
 
-    swing_beat = [
-        (BASS_DRUM, 112),   # Bass Drum on 1st beat
-        (HI_HAT_CLOSED, 80),  # Hi-Hat on 1st beat
-        (SNARE_DRUM, 100),  # Snare Drum on 2nd beat
-        (RIDE_CYMBAL, 100) 
-    ]
+    while True:    
+        phrase_two(fs, time_per_beat)
 
-    while True:
-        # Send a MIDI "note on" message to trigger the ride cymbal sound
-        print("Note on")
-        fs.noteon(0, RIDE_CYMBAL_NOTE, 112)  # 0x90 is note-on, 112 is velocity
+transition_matrix = [
+    [0.45, 0.1, 0.05, 0.05, 0.03, 0.13, 0.07, 0.06, 0.06],
+    [0.4, 0.01, 0.19, 0.03, 0.1, 0.08, 0.04, 0.09, 0.06],
+    [0.3, 0.03, 0.04, 0.1, 0.01, 0.08, 0.06, 0.18, 0.2],
+    [0.4, 0.02, 0.08, 0.07, 0.16, 0.04, 0.03, 0.12, 0.08],
+    [0.5, 0.07, 0.04, 0.05, 0.02, 0.15, 0.08, 0.06, 0.03],
+    [0.2, 0.08,  0.03, 0.1, 0.1, 0.3, 0.2, 0.02, 0.06],
+    [0.2, 0.08, 0.03, 0.1, 0.04, 0.3, 0.2, 0.04, 0.01],
+    [0.30, 0.08,  0.1, 0.06, 0.01, 0.2, 0.19, 0.02, 0.04],
+    [0.3, 0.01, 0.09, 0.06, 0.01, 0.14, 0.17, 0.2, 0.02]
+]
 
-        # Wait for the time per quarter note
-        sleep(time_per_beat)
-
-        # Send a MIDI "note off" message to stop the sound
-        fs.noteoff(0, RIDE_CYMBAL_NOTE)  # 0x80 is note-off, velocity 0
+# Function to choose the next pattern using the Markov Chain
+def choose_next_pattern(current_state):
+    return random.choices([0, 1, 2, 3, 4, 5, 6, 7, 8], transition_matrix[current_state])[0]
 
 # Main function
 def main():
@@ -61,14 +58,37 @@ def main():
     except ValueError:
         print("Invalid input. Please enter a valid number for tempo.")
         return
+    
+    time_per_beat = 60 / tempo
 
-    print(f"Playing ride cymbal at {tempo} BPM. Type 'exit' to stop.")
 
     # Start playing the ride cymbal pattern
-    try:
-        play_ride_cymbal(tempo)
-    except KeyboardInterrupt:
-        print("\nExiting...")
+    current_state = 0  # Start at Pattern 1
+
+    while True:
+        if current_state == 0:
+            swing_pattern(fs, time_per_beat)
+        elif current_state == 1:
+            phrase_one(fs, time_per_beat)
+        elif current_state == 2:
+            phrase_two(fs, time_per_beat)
+        elif current_state == 3:
+            phrase_three(fs, time_per_beat)
+        elif current_state == 4:
+            phrase_four(fs, time_per_beat)
+        elif current_state == 5:
+            phrase_five(fs, time_per_beat)
+        elif current_state == 6:
+            phrase_six(fs, time_per_beat)
+        elif current_state == 7:
+            phrase_seven(fs, time_per_beat)
+        elif current_state == 8:
+            phrase_eight(fs, time_per_beat)
+ 
+
+        # After each pattern, choose the next pattern based on the Markov Chain
+        current_state = choose_next_pattern(current_state)
+
 
 if __name__ == "__main__":
     main()
