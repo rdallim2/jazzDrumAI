@@ -17,7 +17,7 @@ def swing_pattern(fs, time_per_beat):
     sleep(time_per_beat) 
 
     fs.noteon(0, BASS_DRUM, 40) 
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 2/3)
     fs.noteon(0, RIDE_CYMBAL, 75)
@@ -31,7 +31,7 @@ def phrase_one(fs, time_per_beat):
     sleep(time_per_beat * 1/3) 
 
     fs.noteon(0, BASS_DRUM, 110) 
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 2/3)
     fs.noteon(0, RIDE_CYMBAL, 75)
@@ -47,7 +47,7 @@ def phrase_two(fs, time_per_beat):
     sleep(time_per_beat * 1/3)
 
     fs.noteon(0, BASS_DRUM, 90) 
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 1/3)
     fs.noteon(0, SNARE_DRUM, 30)
@@ -67,7 +67,7 @@ def phrase_three(fs, time_per_beat):
     sleep(time_per_beat * 1/3)
 
     fs.noteon(0, BASS_DRUM, 110) 
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 2/3)
     fs.noteon(0, RIDE_CYMBAL, 75)
@@ -78,7 +78,7 @@ def phrase_four(fs, time_per_beat):
     fs.noteon(0, RIDE_CYMBAL, 100)
     sleep(time_per_beat) 
     
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 2/3)    
     fs.noteon(0, BASS_DRUM, 85) 
@@ -93,7 +93,7 @@ def phrase_five(fs, time_per_beat):
     sleep(time_per_beat * 1/3)
 
     fs.noteon(0, BASS_DRUM, 40)
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 2/3)
     fs.noteon(0, RIDE_CYMBAL, 75)
@@ -106,7 +106,7 @@ def phrase_six(fs, time_per_beat):
     sleep(time_per_beat * 1/3)
 
 
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 2/3)
     fs.noteon(0, RIDE_CYMBAL, 75)
@@ -121,7 +121,7 @@ def phrase_seven(fs, time_per_beat):
     sleep(time_per_beat * 1/3)
 
     fs.noteon(0, SNARE_DRUM, 40) 
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 1/3)
     fs.noteon(0, SNARE_DRUM, 40)
@@ -134,14 +134,150 @@ def phrase_eight(fs, time_per_beat):
     fs.noteon(0, BASS_DRUM, 40)  
     fs.noteon(0, RIDE_CYMBAL, 100)
     sleep(time_per_beat * 1/3)
-    fs.noteon(0, SNARE_DRUM, 70) 
+    fs.noteon(0, SNARE_DRUM, 45) 
     sleep(time_per_beat * 2/3)
 
     fs.noteon(0, BASS_DRUM, 40) 
-    fs.noteon(0, SNARE_DRUM, 70) 
-    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, SNARE_DRUM, 45) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
     fs.noteon(0, HI_HAT_CLOSED, 80)
     sleep(time_per_beat * 2/3)
     fs.noteon(0, RIDE_CYMBAL, 75)
-    fs.noteon(0, SNARE_DRUM, 70) 
+    fs.noteon(0, SNARE_DRUM, 90) 
     sleep(time_per_beat * 1/3)  
+
+#-------------------  SLOW PHRASES --------------------------
+    
+
+def phrase_nine(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 40)  
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 40)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 50)
+    sleep(time_per_beat * 1/3)
+
+    fs.noteon(0, BASS_DRUM, 40) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    sleep(time_per_beat * 1/3)
+
+def phrase_ten(fs, time_per_beat): 
+    fs.noteon(0, BASS_DRUM, 40)  
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 40)
+    sleep(time_per_beat * 1/3) 
+    fs.noteon(0, SNARE_DRUM, 50)
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, SNARE_DRUM, 70) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    fs.noteon(0, BASS_DRUM, 90)
+    sleep(time_per_beat * 1/3)  
+
+def phrase_eleven(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 40)  
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 30)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 60)
+    sleep(time_per_beat * 1/3)
+
+    fs.noteon(0, BASS_DRUM, 90) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 30)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, BASS_DRUM, 90)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    sleep(time_per_beat * 1/3)  
+
+def phrase_twelve(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 40)  
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, SNARE_DRUM, 50)    
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 40)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, BASS_DRUM, 90) 
+    sleep(time_per_beat * 1/3)
+
+
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 30)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 45)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    sleep(time_per_beat * 1/3)  
+
+#--------------------- FAST PHRASES -----------------------------
+    
+def phrase_thirteen(fs, time_per_beat): 
+    fs.noteon(0, BASS_DRUM, 40)  
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, SNARE_DRUM, 60)
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, SNARE_DRUM, 70) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    fs.noteon(0, BASS_DRUM, 90)
+    sleep(time_per_beat * 1/3) 
+
+def phrase_fourteen(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 40)  
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, SNARE_DRUM, 60)
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, SNARE_DRUM, 80) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    fs.noteon(0, BASS_DRUM, 40)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    sleep(time_per_beat * 1/3)  
+
+def phrase_fifteen(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 40)  
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    fs.noteon(0, SNARE_DRUM, 70)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, SNARE_DRUM, 65)
+    sleep(time_per_beat * 1/3)
+
+    fs.noteon(0, BASS_DRUM, 40) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    sleep(time_per_beat * 1/3)
+
+def phrase_sixteen(fs, time_per_beat): 
+    fs.noteon(0, RIDE_CYMBAL, 100)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, BASS_DRUM, 80)
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, BASS_DRUM, 100) 
+    fs.noteon(0, RIDE_CYMBAL, 115)
+    fs.noteon(0, HI_HAT_CLOSED, 80)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 75)
+    sleep(time_per_beat * 1/3) 
+
