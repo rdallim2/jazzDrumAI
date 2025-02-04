@@ -6,7 +6,7 @@ import fluidsynth
 import mido
 import pygame.midi
 
-from drum_phrases import swing_pattern, phrase_one, phrase_two, phrase_three, phrase_four, phrase_five, phrase_six, phrase_seven, phrase_eight
+from drum_phrases import swing_pattern, phrase_one, phrase_two, phrase_three, phrase_four, phrase_five, phrase_six, phrase_seven, phrase_eight, phrase_nine, phrase_ten, phrase_ten, phrase_eleven, phrase_twelve, phrase_thirteen, phrase_fourteen, phrase_fifteen, phrase_sixteen
 # Initialize the synthesizer
 fs = fluidsynth.Synth()
 fs.start(driver="coreaudio")
@@ -58,33 +58,73 @@ drum_transition_matrix = [
 ]
 
 # Function to choose the next pattern using the Markov Chain
-def choose_next_pattern(current_state):
+def choose_next_pattern(current_state, tempo):
     return random.choices([0, 1, 2, 3, 4, 5, 6, 7, 8], drum_transition_matrix[current_state])[0]
 
-def run_drums(time_per_beat):
+def run_drums(time_per_beat, tempo):
     current_state = 0  # Start with swing pattern
     while True:
-        if current_state == 0:
-            swing_pattern(fs, time_per_beat)
-        elif current_state == 1:
-            phrase_one(fs, time_per_beat)
-        elif current_state == 2:
-            phrase_two(fs, time_per_beat)
-        elif current_state == 3:
-            phrase_three(fs, time_per_beat)
-        elif current_state == 4:
-            phrase_four(fs, time_per_beat)
-        elif current_state == 5:
-            phrase_five(fs, time_per_beat)
-        elif current_state == 6:
-            phrase_six(fs, time_per_beat)
-        elif current_state == 7:
-            phrase_seven(fs, time_per_beat)
-        elif current_state == 8:
-            phrase_eight(fs, time_per_beat)
+        if tempo < 120:
+            if current_state == 0:
+                swing_pattern(fs, time_per_beat)
+            elif current_state == 1:
+                phrase_one(fs, time_per_beat)
+            elif current_state == 2:
+                phrase_two(fs, time_per_beat)
+            elif current_state == 3:
+                phrase_three(fs, time_per_beat)
+            elif current_state == 4:
+                phrase_four(fs, time_per_beat)
+            elif current_state == 5:
+                phrase_five(fs, time_per_beat)
+            elif current_state == 6:
+                phrase_six(fs, time_per_beat)
+            elif current_state == 7:
+                phrase_seven(fs, time_per_beat)
+            elif current_state == 8:
+                phrase_eight(fs, time_per_beat)
+        elif 120 <= tempo <= 240:
+            if current_state == 0:
+                swing_pattern(fs, time_per_beat)
+            elif current_state == 1:
+                phrase_one(fs, time_per_beat)
+            elif current_state == 2:
+                phrase_two(fs, time_per_beat)
+            elif current_state == 3:
+                phrase_three(fs, time_per_beat)
+            elif current_state == 4:
+                phrase_four(fs, time_per_beat)
+            elif current_state == 5:
+                phrase_five(fs, time_per_beat)
+            elif current_state == 6:
+                phrase_six(fs, time_per_beat)
+            elif current_state == 7:
+                phrase_seven(fs, time_per_beat)
+            elif current_state == 8:
+                phrase_eight(fs, time_per_beat)
+        elif 241 <= tempo <= 400:
+            if current_state == 0:
+                swing_pattern(fs, time_per_beat)
+            elif current_state == 1:
+                phrase_one(fs, time_per_beat)
+            elif current_state == 2:
+                phrase_thirteen(fs, time_per_beat)
+            elif current_state == 3:
+                phrase_three(fs, time_per_beat)
+            elif current_state == 4:
+                phrase_fourteen(fs, time_per_beat)
+            elif current_state == 5:
+                phrase_five(fs, time_per_beat)
+            elif current_state == 6:
+                phrase_six(fs, time_per_beat)
+            elif current_state == 7:
+                phrase_fifteen(fs, time_per_beat)
+            elif current_state == 8:
+                phrase_sixteen(fs, time_per_beat)
+
 
         # After each pattern, choose the next pattern based on the Markov Chain
-        current_state = choose_next_pattern(current_state)
+        current_state = choose_next_pattern(current_state, tempo)
 
 # Function for handling MIDI input
 def handle_midi_input():
@@ -126,7 +166,7 @@ def main():
     # Start the drum pattern and MIDI listener concurrently using threads
 
     if players == 1:
-        drum_thread = threading.Thread(target=run_drums, args=(time_per_beat,))
+        drum_thread = threading.Thread(target=run_drums, args=(time_per_beat, tempo))
         drum_thread.start()
         
     else:
