@@ -7,6 +7,7 @@ import mido
 import pygame.midi
 
 from drum_phrases import *
+from bass_blues import * 
 # Initialize the synthesizer
 fs = fluidsynth.Synth()
 fs.start(driver="coreaudio")
@@ -42,6 +43,10 @@ try:
         raise Exception("Failed to load piano SoundFont")
     fs.sfont_select(0, piano_sfid)
     fs.program_select(10, piano_sfid, 0, 0)  # Program 0 for piano sounds
+    fs.cc(10, 7, 50)
+    fs.cc(9, 7, 60)
+
+    fs.program_select(9, piano_sfid, 0, 32)  # 0 is the channel, 32 is the bank for fingered bass
 
     # Load SoundFont for drum sounds
     drum_sfid = fs.sfload("drums_for_ai_v10.sf2")  # Replace with the actual drum SoundFont file path
@@ -49,8 +54,8 @@ try:
         raise Exception("Failed to load drum SoundFont")
     fs.sfont_select(0, drum_sfid)
     #THE PARAMS BELOW ARE WHAT MAKE THE AUDIO WORK WITH PIANO
-    #First param is inst num in polyphone preset (4)
-    fs.program_select(4, drum_sfid, 0, 0)  # Program 128 for drum kit
+    #First param is inst num in polyphone preset (4), if in two player, set first param to 0
+    fs.program_select(0, drum_sfid, 0, 0)  # Program 128 for drum kit
 except Exception as e:
     print(f"Error loading soundfonts: {e}")
 
@@ -61,134 +66,127 @@ if not available_ports:
     exit()
 
 
-drum_transition_matrix = [
-[0.7,0.0545,0.0273,0.0273,0.0164,0.0709,0.0382,0.0327,0.0327],
-[0.4, 0.01, 0.19, 0.03, 0.1, 0.08, 0.04, 0.09, 0.06],
-[0.3, 0.03, 0.04, 0.1, 0.01, 0.08, 0.06, 0.18, 0.2],
-[0.4, 0.02, 0.08, 0.07, 0.16, 0.04, 0.03, 0.12, 0.08],
-[0.5, 0.07, 0.04, 0.05, 0.02, 0.15, 0.08, 0.06, 0.03],
-[0.2, 0.08,  0.03, 0.1, 0.1, 0.3, 0.2, 0.02, 0.06],
-[0.2, 0.08, 0.03, 0.1, 0.04, 0.3, 0.2, 0.04, 0.01],
-[0.30, 0.08,  0.1, 0.06, 0.01, 0.2, 0.19, 0.02, 0.04],
-[0.3, 0.01, 0.09, 0.06, 0.01, 0.14, 0.17, 0.2, 0.02]
+choose_phrase_matrix = [    
+    [.3, .25, .2],    
+    [.35, .3, .25],
+    [.4, .35, .3]
 ]
 
-# Function to choose the next pattern using the Markov Chain
-def choose_next_pattern(current_state, tempo, player_count):
-    if player_count == 1:
-        return random.choices([0, 1, 2, 3, 4, 5, 6, 7, 8], drum_transition_matrix[current_state])[0]
-    else:
-        den_vol = analyze_density(tempo)
-        print("den_vol: ", den_vol)
-        if den_vol[0] == 0:
-            return random.choices([0, 1, 2, 3, 4, 5, 6, 7, 8], drum_transition_matrix[current_state])[0]
-        elif den_vol[0] == 1:
-            if den_vol[1] == 0:
-                return random.choice([0, 1, 2, 3, 4, 5])
-            elif den_vol[1] == 1: 
-                return random.choice([0, 1, 2, 3, 4, 5, 6, 7, 8], drum_transition_matrix[current_state])[0]
-            else:
-                return random.choice([4, 5, 6, 7, 8])
-        elif den_vol[0] == 2:
-            if den_vol[1] == 0:
-                return random.choice([0, 1, 2, 3, 4, 5])
-
-            elif den_vol[1] == 1:
-                return random.choices([0, 1, 2, 3, 4, 5, 6, 7, 8], drum_transition_matrix[current_state])[0]
-            else:
-                return random.choice([5, 6, 8])  
-
-
-choose_phrase_matrix = [
-    [.4, .35, .3]
-    [.35, .3, .25]
-    [.3, .25, .2]
+phrase_volume_matrix = [    
+    [.1, .3, .4],
+    [.3, .4, .5],
+    [.4, .5, .6]
 ]
 
 drum_phrase_type_matrix = [
-    [.2, .4, .1, .3]
-    [.4, .2, .3, .1]
-    [.2, .4, .1, .3]
-    [.4, .2, .3, .1]
+    [.4, .2, .3, .1],
+    [.2, .4, .1, .3],
+    [.4, .2, .3, .1],
+    [.2, .4, .1, .3] 
 ]
 
-def choose_next_phrase(current_state, tempo, player_count):
-    den_vol = analyze_density(tempo)
-    den = den_vol[0]
-    vol = den_vol[1]
-    #create density/volume matrix
-    t = tempo - 50
-    p = choose_phrase_matrix[den][vol]
-    new_p = p + (1 - p) * (t // 300)
+drum_comp_vs_time_matrix = [
+    [.3, .4, .5],
+    [.4, .5, .7],
+    [.5, .7, .9]
+]
 
+def choose_next_phrase(tempo, player_count):
+    if player_count == 1:
+        density = ['8', 't8']
+        volume = ['l', 'h']
+        comp = ['y', 'n']
+        d = random.choices(density)[0]
+        v = random.choices(volume)[0]
+        c = random.choices(comp)[0]
+        return [d, v, c]
+    else:
+        den_vol = analyze_density(tempo)
+        den = den_vol[0]
+        vol = den_vol[1]
+        #create density/volume matrix
+        adjusted_tempo = tempo - 50 #tempo as proportion of available tempos 50-350
+        p = choose_phrase_matrix[vol][den]
+        new_p = p + (1.0 - p) * (adjusted_tempo / 300)
+
+        print(f"equation: {p} + {1.0 - p} * {adjusted_tempo / 300}")
+        #percent play 8th based ideas over trip
+        print(f"volume: {vol}, density: {den}")
+        print(f"p: {p}")
+        
+        print("new_p: ", new_p)
+
+        #percent of time to play more crashes
+        crash_percentage = phrase_volume_matrix[vol][den]
+        print(f"crash percentage: {crash_percentage}")
+        density = ['8', 't8']
+        density_probs = [new_p, 1.0 - new_p]
+        density_choice = random.choices(density, density_probs)[0]
+        if vol == 0:
+            volume_choice = 'l'
+        elif vol == 1:
+            volume_choice = 'm'
+        else:
+            volume_choice = 'h'
+
+        comp_amount_choice = drum_comp_vs_time_matrix[int(den)][int(vol)]
+        comp = ['y', 'n']
+        comp_prob = [comp_amount_choice, 1.0 - comp_amount_choice]
+        comp_choice = random.choices(comp, comp_prob)[0]
+        print(f"Comping: {comp_choice}")
+
+        return [density_choice, volume_choice, comp_choice]
+        #REMEMBER- NOW NEED TO ACCOUNT FOR HOW MUCH TIME YOU NEED TO LAY OUT
 
 
 
 def run_drums(time_per_beat, tempo, player_count):
-    current_state = 0  # Start with swing pattern
+    comp_choice = 'n'  # Start with swing pattern
+    curr_density = '8'
+    curr_vol = '0'
     while True:
-        if tempo < 120:
-            if current_state == 0:
-                swing_pattern(fs, time_per_beat)
-            elif current_state == 1:
-                phrase_ten(fs, time_per_beat)
-            elif current_state == 2:
-                phrase_two(fs, time_per_beat)
-            elif current_state == 3:
-                phrase_three(fs, time_per_beat)
-            elif current_state == 4:
-                phrase_nine(fs, time_per_beat)
-            elif current_state == 5:
-                phrase_five(fs, time_per_beat)
-            elif current_state == 6:
-                phrase_six(fs, time_per_beat)
-            elif current_state == 7:
-                phrase_seven(fs, time_per_beat)
-            elif current_state == 8:
-                phrase_eight(fs, time_per_beat)
-        elif 120 <= tempo <= 240:
-            if current_state == 0:
-                swing_pattern(fs, time_per_beat)
-            elif current_state == 1:
-                phrase_one(fs, time_per_beat)
-            elif current_state == 2:
-                phrase_two(fs, time_per_beat)
-            elif current_state == 3:
-                phrase_three(fs, time_per_beat)
-            elif current_state == 4:
-                phrase_four(fs, time_per_beat)
-            elif current_state == 5:
-                d_phrase_five(fs, time_per_beat)
-            elif current_state == 6:
-                phrase_six(fs, time_per_beat)
-            elif current_state == 7:
-                phrase_seven(fs, time_per_beat)
-            elif current_state == 8:
-                d_phrase_eight(fs, time_per_beat)
-        elif 241 <= tempo <= 400:
-            if current_state == 0:
-                f_swing_pattern(fs, time_per_beat)
-            elif current_state == 1:
-                f_phrase_one(fs, time_per_beat)
-            elif current_state == 2:
-                f_phrase_thirteen(fs, time_per_beat)
-            elif current_state == 3:
-                f_phrase_three(fs, time_per_beat)
-            elif current_state == 4:
-                f_phrase_fourteen(fs, time_per_beat)
-            elif current_state == 5:
-                f_phrase_five(fs, time_per_beat)
-            elif current_state == 6:
-                f_phrase_six(fs, time_per_beat)
-            elif current_state == 7:
-                f_phrase_fifteen(fs, time_per_beat)
-            elif current_state == 8:
-                f_phrase_sixteen(fs, time_per_beat)
-
+        if comp_choice == 'n':  
+            swing_pattern(fs, time_per_beat)
+        else:
+            if curr_density == '8':
+                if curr_vol == 'l':
+                    eigth_phrases = [s8_s_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
+                    random.choice(eigth_phrases)(fs, time_per_beat)
+                elif curr_vol == 'm':
+                    s8_med_phrases = [s8_s_one, s8_s_two, s8_crash_one, s8_crash_two, s8_b_one]
+                    random.choice(s8_med_phrases)(fs, time_per_beat)
+                else:
+                    s8_high_phrases = [s8_crash_one, s8_crash_two]
+                    random.choice(s8_high_phrases)(fs, time_per_beat)
+            elif curr_density == 't8':
+                if curr_vol == 'l':
+                    t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]
+                    random.choice(t_eighth_phrases)(fs, time_per_beat)
+                elif curr_vol == 'm': 
+                    t_med_phrases = [t8_s_one, t8_s_two, t8_crash_one, t8_crash_two]
+                    random.choice(t_med_phrases)(fs, time_per_beat)
+                else:
+                    t_high_phrases = [t8_crash_one, t8_crash_two]
+                    random.choice(t_high_phrases)(fs, time_per_beat)
 
         # After each pattern, choose the next pattern based on the Markov Chain
-        current_state = choose_next_pattern(current_state, tempo, player_count)
+        current_state = choose_next_phrase(tempo, player_count)
+        curr_density = current_state[0]
+        curr_vol = current_state[1]
+        comp_choice = current_state[2]
+        print(f"current_density: {curr_density}, current_volume: {curr_vol}, comp_choice: {comp_choice}")
 
+
+def run_bass(time_per_beat, bass_channel=9):
+    """
+    This function will continuously play bass lines
+    """
+    print(f"Bass started on channel {bass_channel}")
+    try:
+        # Use the walking_bass_line function from bass_blues.py for a more interesting bass line
+        walking_bass_line(fs, time_per_beat, bass_channel)
+    except Exception as e:
+        print(f"Error in bass thread: {e}")
 note_events = []
 note_volumes = []
 
@@ -222,9 +220,9 @@ def analyze_density(bpm):
     elif density <= 3:
         ret_den = 0
 
-    if avg_volume >= 90:
+    if avg_volume >= 80:
         ret_vol = 2
-    elif 30 < avg_volume <= 89:
+    elif 20 < avg_volume <= 79:
         ret_vol = 1
     else:
         ret_vol = 0
@@ -269,7 +267,7 @@ def main():
         except ValueError:
             print("Invalid input. Please enter a valid number for tempo.")
 
-    output_device_id = 7 if players != 1 else 7
+    output_device_id = 9 if players != 1 else 7
     print("output device id: ", output_device_id)
     output_device = pygame.midi.Output(output_device_id)
     output_device.set_instrument(0) if players != 1 else output_device.set_instrument(0)
@@ -279,13 +277,13 @@ def main():
     # Start the drum pattern and MIDI listener concurrently using threads
     if players == 0:
         while True:
-            t8_b_four(fs, time_per_beat)
+            s8_crash_one(fs, time_per_beat)
             print("Playing swing")
     elif players == 1:
         drum_thread = threading.Thread(target=run_drums, args=(time_per_beat, tempo, players))
         drum_thread.start()
         
-    else:
+    elif players == 2:
         port_name = available_ports[3]
         
         drum_thread = threading.Thread(target=run_drums, args=(time_per_beat, tempo, players))
@@ -296,6 +294,23 @@ def main():
         
         drum_thread.join()
         midi_thread.join()
+
+    elif players == 3: 
+        port_name = available_ports[3]
+        
+        drum_thread = threading.Thread(target=run_drums, args=(time_per_beat, tempo, players))
+        drum_thread.start()
+    
+        midi_thread = threading.Thread(target=handle_midi_input, args=(tempo,))
+        midi_thread.start()
+
+        bass_thread = threading.Thread(target=run_bass, args=(time_per_beat, 9))
+        bass_thread.start()
+        
+        drum_thread.join()        
+        midi_thread.join()
+        bass_thread.join()
+
     
 if __name__ == "__main__":
     main()
