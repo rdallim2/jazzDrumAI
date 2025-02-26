@@ -180,6 +180,16 @@ def s8_b_two(fs, time_per_beat):
     fs.noteon(0, RIDE_CYMBAL, 95)
     fs.noteon(0, BASS_DRUM, 50)
     sleep(time_per_beat * 1/3)  
+ 
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
 
 def s8_b_three(fs, time_per_beat):
     fs.noteon(0, BASS_DRUM, 35)    
@@ -207,6 +217,16 @@ def s8_b_four(fs, time_per_beat):
     fs.noteon(0, BASS_DRUM, 40)
     sleep(time_per_beat * 1/3)  
 
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
+
 def s8_b_five(fs, time_per_beat):
     fs.noteon(0, BASS_DRUM, 15)    
     fs.noteon(0, RIDE_CYMBAL, 90)
@@ -220,6 +240,16 @@ def s8_b_five(fs, time_per_beat):
     sleep(time_per_beat * 2/3)
     fs.noteon(0, RIDE_CYMBAL, 95)
     fs.noteon(0, BASS_DRUM, 50)
+    sleep(time_per_beat * 1/3) 
+ 
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
     sleep(time_per_beat * 1/3) 
 
 
@@ -248,6 +278,16 @@ def s8_b_seven(fs, time_per_beat):
     fs.noteon(0, RIDE_CYMBAL, 95)
     fs.noteon(0, BASS_DRUM, 45)
     sleep(time_per_beat * 1/3) 
+  
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
 
 def s8_b_eight(fs, time_per_beat):  
     fs.noteon(0, RIDE_CYMBAL, 90)
@@ -261,6 +301,67 @@ def s8_b_eight(fs, time_per_beat):
     fs.noteon(0, RIDE_CYMBAL, 95)
     fs.noteon(0, BASS_DRUM, 50)
     sleep(time_per_beat * 1/3) 
+ 
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
+
+
+#-------------------------------8TH CRASH PHRASES ------------------------------------
+    
+def s8_crash_one(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 15)    
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, SNARE_DRUM, 55)
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, SNARE_DRUM, 70)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, CRASH_SIZ_V2, 115)
+    fs.noteon(0, BASS_DRUM, 50)
+    sleep(time_per_beat * 1/3) 
+
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
+
+def s8_crash_two(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 15)    
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, SNARE_DRUM, 50)
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, BASS_DRUM, 80)
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, CRASH_SIZ_V2, 110)
+    fs.noteon(0, SNARE_DRUM, 70)
+    sleep(time_per_beat * 1/3) 
+
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
+
 
 
 
@@ -351,6 +452,16 @@ def t8_b_one(fs, time_per_beat):
     fs.noteon(0, BASS_DRUM, 60)
     sleep(time_per_beat * 1/3)  
 
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
+
 def t8_b_two(fs, time_per_beat):
     fs.noteon(0, BASS_DRUM, 15)  
     fs.noteon(0, RIDE_CYMBAL, 90)
@@ -369,6 +480,16 @@ def t8_b_two(fs, time_per_beat):
     fs.noteon(0, RIDE_CYMBAL, 95)
     fs.noteon(0, BASS_DRUM, 60)
     sleep(time_per_beat * 1/3)  
+
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
 
 def t8_b_three(fs, time_per_beat):
     fs.noteon(0, BASS_DRUM, 15)  
@@ -402,6 +523,74 @@ def t8_b_four(fs, time_per_beat):
     fs.noteon(0, RIDE_CYMBAL, 95)
     fs.noteon(0, BASS_DRUM, 60)
     sleep(time_per_beat * 1/3)  
+ 
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
+
+
+#---------------- TRIP CRASH PHRASES ----------------------------
+    
+def t8_crash_one(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 15)  
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 55)  
+    sleep(time_per_beat * 1/3)  
+    fs.noteon(0, BASS_DRUM, 60) 
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, SNARE_DRUM, 60)  
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 65)  
+    sleep(time_per_beat * 1/3)  
+    fs.noteon(0, CRASH_SIZ_V2, 110)
+    fs.noteon(0, BASS_DRUM, 80)
+    sleep(time_per_beat * 1/3)  
+
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
+
+def t8_crash_two(fs, time_per_beat):
+    fs.noteon(0, BASS_DRUM, 15)  
+    fs.noteon(0, RIDE_CYMBAL, 90)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 45)  
+    sleep(time_per_beat * 1/3)  
+    fs.noteon(0, SNARE_DRUM, 55) 
+    sleep(time_per_beat * 1/3) 
+
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 1/3)
+    fs.noteon(0, SNARE_DRUM, 65)  
+    sleep(time_per_beat * 1/3)  
+    fs.noteon(0, CRASH_SIZ_V2, 110)
+    fs.noteon(0, BASS_DRUM, 80)
+    sleep(time_per_beat * 1/3)  
+
+    sleep(time_per_beat) 
+
+    fs.noteon(0, BASS_DRUM, 15)   
+    fs.noteon(0, RIDE_CYMBAL, 105)
+    fs.noteon(0, HI_HAT_CLOSED, 50)
+    sleep(time_per_beat * 2/3)
+    fs.noteon(0, RIDE_CYMBAL, 95)
+    sleep(time_per_beat * 1/3) 
 
 
 #------------------------------- MISC ----------------------------
