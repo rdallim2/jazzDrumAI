@@ -141,6 +141,7 @@ class DrumMachineGUI(BoxLayout):
 
     def run_drums_wrapper(self, time_per_beat, tempo, players):
         try:
+            trip_spacing = get_trip_spacing(tempo)
             # Initialize state variables outside the loop
             comp_choice = 'n'  # Start with swing pattern
             curr_density = '8'
@@ -149,18 +150,18 @@ class DrumMachineGUI(BoxLayout):
             while not self.stop_event.is_set():
                 # Execute the current pattern
                 if comp_choice == 'n':  
-                    swing_pattern(fs, time_per_beat)
+                    swing_pattern(fs, time_per_beat, trip_spacing)
                 else:
                     if curr_density == '8':
                         if curr_vol == 'l':
                             eigth_phrases = [s8_s_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
-                            random.choice(eigth_phrases)(fs, time_per_beat)
+                            random.choice(eigth_phrases)(fs, time_per_beat, trip_spacing)
                         elif curr_vol == 'm':
                             s8_med_phrases = [s8_s_one, s8_s_two, s8_crash_one, s8_crash_two, s8_b_one]
-                            random.choice(s8_med_phrases)(fs, time_per_beat)
+                            random.choice(s8_med_phrases)(fs, time_per_beat, trip_spacing)
                         else:
                             s8_high_phrases = [s8_crash_one, s8_crash_two]
-                            random.choice(s8_high_phrases)(fs, time_per_beat)
+                            random.choice(s8_high_phrases)(fs, time_per_beat, trip_spacing)
                     elif curr_density == 't8':
                         if curr_vol == 'l':
                             t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]

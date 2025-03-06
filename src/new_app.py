@@ -67,9 +67,9 @@ if not available_ports:
 
 
 choose_phrase_matrix = [    
-    [.3, .25, .2],    
-    [.35, .3, .25],
-    [.4, .35, .3]
+    [.6, .5, .4],    
+    [.7, .6, .5],
+    [.8, .7, .6]
 ]
 
 phrase_volume_matrix = [    
@@ -86,13 +86,13 @@ drum_phrase_type_matrix = [
 ]
 
 drum_comp_vs_time_matrix = [
-    [.3, .4, .5],
-    [.4, .5, .7],
+    [.6, .5, .5],
+    [.5, .5, .7],
     [.5, .7, .9]
 ]
 
 def choose_next_phrase(tempo, player_count):
-    if player_count == 1:
+    if player_count == 0:
         density = ['8', 't8']
         volume = ['l', 'h']
         comp = ['y', 'n']
@@ -107,9 +107,10 @@ def choose_next_phrase(tempo, player_count):
         #create density/volume matrix
         adjusted_tempo = tempo - 50 #tempo as proportion of available tempos 50-350
         p = choose_phrase_matrix[vol][den]
-        new_p = p + (1.0 - p) * (adjusted_tempo / 300)
+        new_p = p + (1.0 - p) * (adjusted_tempo / 200)
 
-        print(f"equation: {p} + {1.0 - p} * {adjusted_tempo / 300}")
+        print(f"equation: {p} + {1.0 - p} * {adjusted_tempo / 200}")
+        print(f"new_p: {new_p}")
         #percent play 8th based ideas over trip
         print(f"volume: {vol}, density: {den}")
         print(f"p: {p}")
@@ -220,9 +221,9 @@ def analyze_density(bpm):
     elif density <= 3:
         ret_den = 0
 
-    if avg_volume >= 80:
+    if avg_volume >= 125:
         ret_vol = 2
-    elif 20 < avg_volume <= 79:
+    elif 20 < avg_volume <= 124:
         ret_vol = 1
     else:
         ret_vol = 0
@@ -277,7 +278,7 @@ def main():
     # Start the drum pattern and MIDI listener concurrently using threads
     if players == 0:
         while True:
-            s8_crash_one(fs, time_per_beat)
+            swing_pattern(fs, time_per_beat)
             print("Playing swing")
     elif players == 1:
         drum_thread = threading.Thread(target=run_drums, args=(time_per_beat, tempo, players))
