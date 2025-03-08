@@ -55,7 +55,7 @@ def piano_comp(fs, time_per_beat, tempo, channel=10):
     chord_voicing = chord_voicings[1]
     init_phrase(channel, fs, time_per_beat, trip_spacing, chord_voicing)
     
-    while True:
+    while True and not stop_event.is_set():
         current_bar = bar_count % total_bars
         
         # Determine the current chord based on the bar
@@ -90,3 +90,11 @@ def piano_comp(fs, time_per_beat, tempo, channel=10):
             phrase_three(channel, fs, time_per_beat, trip_spacing, chord_voicing)
 
         bar_count += 1
+        if stop_event.is_set():
+            print("Stop event detected. Stopping all notes.")
+            try:
+                fs.all_notes_off(channel)
+                fs.all_sounds_off(channel)
+            except Exception as e:
+                print(f"Error stopping notes: {e}")
+            break  # Exit loop
