@@ -18,11 +18,6 @@ from functools import partial
 
 # Import everything from new_app.py
 from new_app import *
-from bass_blues import *
-from piano_comp import *
-
-
-bar_ready = threading.Event()
 
 class DrumMachineGUI(BoxLayout):
     def __init__(self, **kwargs):
@@ -51,7 +46,7 @@ class DrumMachineGUI(BoxLayout):
         
         self.tempo_slider = Slider(
             min=60,
-            max=350,
+            max=400,
             value=120,
             step=1,
             size_hint_x=0.8
@@ -63,7 +58,7 @@ class DrumMachineGUI(BoxLayout):
         # Mode Selection
         self.mode_spinner = Spinner(
             text='Select Mode',
-            values=('Drums Only', 'Piano with Drums', 'You play Piano, with Bass with Drums', 'Bass with Drums', 'Piano/Bass/Drums'),
+            values=('Drums Only', 'Piano with Drums', 'Piano and Bass with Drums'),
             size_hint=(None, None),
             size=(300, 50),
             pos_hint={'center_x': 0.5}
@@ -113,7 +108,8 @@ class DrumMachineGUI(BoxLayout):
             # Initialize FluidSynth
             fs = fluidsynth.Synth()
             fs.start(driver="coreaudio")
-            fs.setting('synth.gain', 1.35)
+            fs.setting('synth.gain', 0.5)
+            self.fs = fs  # Store reference to global fs
 
             # Initialize pygame MIDI
             if not pygame.midi.get_init():
@@ -122,125 +118,83 @@ class DrumMachineGUI(BoxLayout):
             # Load SoundFonts
             piano_sfid = fs.sfload("FluidR3_GM.sf2")
             if piano_sfid == -1:
-                raise Exception("Failed to load piano SoundFont")
-            
-            # Set up piano on channel 10
-            fs.sfont_select(10, piano_sfid)
-            fs.program_select(10, piano_sfid, 0, 0)  # Piano on channel 10
-            fs.cc(10, 7, 45)  # Set piano volume
-            
-            # Set up bass on channel 9
-            fs.sfont_select(9, piano_sfid)
-            fs.program_select(9, piano_sfid, 0, 32)  # Bass on channel 9
-            fs.cc(9, 7, 60)  # Set bass volume
+                self.status_label.text = 'Error: Failed to load piano SoundFont'
+                return
+            fs.sfont_select(0, piano_sfid)
+            fs.program_select(10, piano_sfid, 0, 0)
 
-            # Load SoundFont for drum sounds and set up on channel 0
             drum_sfid = fs.sfload("drums_for_ai_v10.sf2")
             if drum_sfid == -1:
-                raise Exception("Failed to load drum SoundFont")
-            
-            fs.sfont_select(0, drum_sfid)  # Select drum soundfont for channel 0
-            fs.program_select(0, drum_sfid, 0, 0)  # Set up drums on channel 0, bank 0, preset 0
-            fs.cc(0, 7, 100)  # Set drum volume
-            
-            print("Audio initialization complete - Drums on ch 0, Bass on ch 9, Piano on ch 10")
+                self.status_label.text = 'Error: Failed to load drum SoundFont'
+                return
+            fs.sfont_select(0, drum_sfid)
+            fs.program_select(4, drum_sfid, 0, 0)
+
+            self.status_label.text = 'Audio initialized successfully'
         except Exception as e:
             self.status_label.text = f'Error initializing audio: {str(e)}'
 
     def on_tempo_change(self, instance, value):
         self.tempo_label.text = f'Tempo: {int(value)} BPM'
 
-    def run_drums_wrapper(self, time_per_beat, tempo, players):
-        try:
-            trip_spacing = get_trip_spacing(tempo)
-            # Initialize state variables outside the loop
-            comp_choice = 'n'  # Start with swing pattern
-            curr_density = '8'
-            curr_vol = '0'
-            
+    def run_drums(time_per_beat, tempo, player_count):
+        comp_choice = 'n'  # Start with swing pattern
+        curr_density = '8'
+        curr_vol = '0'
+        while True:
+            if comp_choice == 'n':  
+                swing_pattern(fs, time_per_beat)
+            else:
+                if curr_density == '8':
+                    if curr_vol == 'l':
+                        eigth_phrases = [s8_s_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
+                        random.choice(eigth_phrases)(fs, time_per_beat)
+                    elif curr_vol == 'm':
+                        s8_med_phrases = [s8_s_one, s8_s_two, s8_crash_one, s8_crash_two, s8_b_one]
+                        random.choice(s8_med_phrases)(fs, time_per_beat)
+                    else:
+                        s8_high_phrases = [s8_crash_one, s8_crash_two]
+                        random.choice(s8_high_phrases)(fs, time_per_beat)
+                elif curr_density == 't8':
+                    if curr_vol == 'l':
+                        t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]
+                        random.choice(t_eighth_phrases)(fs, time_per_beat)
+                    elif curr_vol == 'm': 
+                        t_med_phrases = [t8_s_one, t8_s_two, t8_crash_one, t8_crash_two]
+                        random.choice(t_med_phrases)(fs, time_per_beat)
+                    else:
+                        t_high_phrases = [t8_crash_one, t8_crash_two]
+                        random.choice(t_high_phrases)(fs, time_per_beat)
 
-            while not self.stop_event.is_set():
-                bar_ready.set()
-                # Execute the current pattern
-                if comp_choice == 'n':  
-                    swing_pattern(fs, time_per_beat, trip_spacing)
-                else:
-                    if curr_density == '8':
-                        if curr_vol == 'l':
-                            eigth_phrases = [s8_s_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
-                            random.choice(eigth_phrases)(fs, time_per_beat, trip_spacing)
-                        elif curr_vol == 'm':
-                            s8_med_phrases = [s8_s_one, s8_s_two, s8_crash_one, s8_crash_two, s8_b_one]
-                            random.choice(s8_med_phrases)(fs, time_per_beat, trip_spacing)
-                        else:
-                            s8_high_phrases = [s8_crash_one, s8_crash_two]
-                            random.choice(s8_high_phrases)(fs, time_per_beat, trip_spacing)
-                    elif curr_density == 't8':
-                        if curr_vol == 'l':
-                            t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]
-                            random.choice(t_eighth_phrases)(fs, time_per_beat)
-                        elif curr_vol == 'm': 
-                            t_med_phrases = [t8_s_one, t8_s_two, t8_crash_one, t8_crash_two]
-                            random.choice(t_med_phrases)(fs, time_per_beat)
-                        else:
-                            t_high_phrases = [t8_crash_one, t8_crash_two]
-                            random.choice(t_high_phrases)(fs, time_per_beat)
-
-                # Check stop event after pattern execution
-                if self.stop_event.is_set():
-                    break
-
-                # Choose next pattern
-                current_state = choose_next_phrase(tempo, players)
-                curr_density = current_state[0]
-                curr_vol = current_state[1]
-                comp_choice = current_state[2]
-                #print(f"current_density: {curr_density}, current_volume: {curr_vol}, comp_choice: {comp_choice}")
-        except Exception as e:
-            print(f"Error in drums thread: {e}")
+            # After each pattern, choose the next pattern based on the Markov Chain
+            current_state = choose_next_phrase(tempo, player_count)
+            curr_density = current_state[0]
+            curr_vol = current_state[1]
+            comp_choice = current_state[2]
+            print(f"current_density: {curr_density}, current_volume: {curr_vol}, comp_choice: {comp_choice}")
 
     def handle_midi_input_wrapper(self, tempo):
-        with mido.open_input(available_ports[3]) as port:
-            print("Listening for Keyboard MIDI input... Press Ctrl+C to exit.")
-            try:
-                for msg in port:
-                    if msg.type == "note_on":
-                        if msg.note >= 35 and msg.note <= 81:  
-                            fs.noteon(10, msg.note, msg.velocity)  # Changed to channel 10 for piano
-                        timestamp = time.time() * 1000
-                        note_events.append(timestamp)
-                        note_volumes.append((time.time() * 1000, msg.velocity))
-                    elif msg.type == "note_off":
-                        if msg.note >= 35 and msg.note <= 81:  
-                            fs.noteoff(10, msg.note)  # Changed to channel 10 for piano
-                    analyze_density(tempo)
-            except KeyboardInterrupt:
-                print("\nExiting MIDI listener.")
-                pygame.midi.quit()
-
-    def run_bass_wrapper(self, time_per_beat, bass_channel=9):
         try:
             while not self.stop_event.is_set():
-                # Simple bass pattern
-                if not self.stop_event.is_set():
-                    walking_bass_line(fs, time_per_beat, bass_channel)          
+                handle_midi_input(tempo)
+                if self.stop_event.is_set():
+                    break
+        except Exception as e:
+            print(f"Error in MIDI thread: {e}")
+
+    def run_bass_wrapper(self, time_per_beat, output_device):
+        try:
+            while not self.stop_event.is_set():
+                run_bass(time_per_beat, output_device)
+                if self.stop_event.is_set():
+                    break
         except Exception as e:
             print(f"Error in bass thread: {e}")
 
-    def run_piano_wrapper(self, time_per_beat, tempo, piano_channel=10):
-        try:
-            while not self.stop_event.is_set():
-                # Simple piano pattern
-                if not self.stop_event.is_set():
-                    piano_comp(fs, time_per_beat, tempo, piano_channel)  # Fixed parameter order          
-        except Exception as e:
-            print(f"Error in piano thread: {e}")
-
     def start_performance(self, instance):
-        global fs
-        if fs is None:
+        if not hasattr(self, 'fs') or self.fs is None:
             self.initialize_audio()
-            if fs is None:
+            if not hasattr(self, 'fs') or self.fs is None:
                 self.status_label.text = 'Error: Audio not initialized'
                 return
 
@@ -257,10 +211,6 @@ class DrumMachineGUI(BoxLayout):
             players = 2
         elif mode == 'Piano and Bass with Drums':
             players = 3
-        elif mode == 'Bass with Drums':
-            players = 4
-        elif mode == 'Piano/Bass/Drums':
-            players = 5
         else:
             self.status_label.text = 'Please select a mode'
             return
@@ -314,42 +264,6 @@ class DrumMachineGUI(BoxLayout):
                 bass_thread.start()
                 self.running_threads.extend([drum_thread, midi_thread, bass_thread])
 
-            elif players == 4:
-                drum_thread = threading.Thread(
-                    target=self.run_drums_wrapper,
-                    args=(time_per_beat, tempo, players)
-                )
-                bass_thread = threading.Thread(
-                    target=self.run_bass_wrapper,
-                    args=(time_per_beat, 9)
-                )
-                drum_thread.daemon = True
-                bass_thread.daemon = True
-                drum_thread.start()
-                bass_thread.start()
-                self.running_threads.extend([drum_thread, bass_thread])
-
-            elif players == 5:
-                drum_thread = threading.Thread(
-                    target=self.run_drums_wrapper,
-                    args=(time_per_beat, tempo, players)
-                )
-                piano_thread = threading.Thread(
-                    target=self.run_piano_wrapper,
-                    args=(time_per_beat, tempo, 10)
-                )
-                bass_thread = threading.Thread(
-                    target=self.run_bass_wrapper,
-                    args=(time_per_beat, 9)
-                )
-                drum_thread.daemon = True
-                piano_thread.daemon = True
-                bass_thread.daemon = True
-                drum_thread.start()
-                piano_thread.start()
-                bass_thread.start()
-                self.running_threads.extend([drum_thread, piano_thread, bass_thread])
-
             self.status_label.text = f'Playing - {mode}'
             self.start_button.disabled = True
             self.stop_button.disabled = False
@@ -366,14 +280,11 @@ class DrumMachineGUI(BoxLayout):
         
         # Immediate audio cleanup - just stop notes
         try:
-            global fs
-            if fs is not None:
-                # Stop all notes on all channels
-                for channel in [0, 9, 10]:
-                    for note in range(128):
-                        fs.noteoff(channel, note)
-                    fs.all_notes_off(channel)
-                    fs.all_sounds_off(channel)
+            if self.fs is not None:
+                for i in range(128):
+                    self.fs.noteoff(0, i)
+                    self.fs.noteoff(4, i)
+                    self.fs.noteoff(10, i)
         except Exception as e:
             print(f"Error during immediate cleanup: {e}")
         
@@ -394,12 +305,11 @@ class DrumMachineGUI(BoxLayout):
 
     def __del__(self):
         try:
-            global fs
-            if fs is not None:
+            if self.fs is not None:
                 for i in range(128):
-                    fs.noteoff(0, i)
-                    fs.noteoff(9, i)
-                    fs.noteoff(10, i)
+                    self.fs.noteoff(0, i)
+                    self.fs.noteoff(4, i)
+                    self.fs.noteoff(10, i)
         except:
             pass
 

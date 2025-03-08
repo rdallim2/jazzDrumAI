@@ -8,7 +8,6 @@ import pygame.midi
 
 from drum_phrases import *
 from bass_blues import * 
-from piano_comp import *
 # Initialize the synthesizer
 fs = fluidsynth.Synth()
 fs.start(driver="coreaudio")
@@ -93,7 +92,7 @@ drum_comp_vs_time_matrix = [
 ]
 
 def choose_next_phrase(tempo, player_count):
-    if player_count == 0:
+    if player_count == 1:
         density = ['8', 't8']
         volume = ['l', 'h']
         comp = ['y', 'n']
@@ -107,21 +106,21 @@ def choose_next_phrase(tempo, player_count):
         vol = den_vol[1]
         #create density/volume matrix
         adjusted_tempo = tempo - 50 #tempo as proportion of available tempos 50-350
-        triplet_or_not = choose_phrase_matrix[vol][den]
-        #print(f"original triplet_or_not: {triplet_or_not}")
-        #print(f"equation: {triplet_or_not} + {1.0 - triplet_or_not} * {adjusted_tempo / 200}")
-        triplet_or_not = triplet_or_not + (1.0 - triplet_or_not) * (adjusted_tempo / 200)
+        p = choose_phrase_matrix[vol][den]
+        new_p = p + (1.0 - p) * (adjusted_tempo / 300)
 
-        #print(f"triplet_or_not: {triplet_or_not}")
+        print(f"equation: {p} + {1.0 - p} * {adjusted_tempo / 300}")
         #percent play 8th based ideas over trip
-        #print(f"volume: {vol}, density: {den}")
-
+        print(f"volume: {vol}, density: {den}")
+        print(f"p: {p}")
+        
+        print("new_p: ", new_p)
 
         #percent of time to play more crashes
         crash_percentage = phrase_volume_matrix[vol][den]
-        #print(f"crash percentage: {crash_percentage}")
+        print(f"crash percentage: {crash_percentage}")
         density = ['8', 't8']
-        density_probs = [triplet_or_not, 1.0 - triplet_or_not]
+        density_probs = [new_p, 1.0 - new_p]
         density_choice = random.choices(density, density_probs)[0]
         if vol == 0:
             volume_choice = 'l'
@@ -134,7 +133,7 @@ def choose_next_phrase(tempo, player_count):
         comp = ['y', 'n']
         comp_prob = [comp_amount_choice, 1.0 - comp_amount_choice]
         comp_choice = random.choices(comp, comp_prob)[0]
-        #print(f"Comping: {comp_choice}")
+        print(f"Comping: {comp_choice}")
 
         return [density_choice, volume_choice, comp_choice]
         #REMEMBER- NOW NEED TO ACCOUNT FOR HOW MUCH TIME YOU NEED TO LAY OUT
@@ -175,7 +174,7 @@ def run_drums(time_per_beat, tempo, player_count):
         curr_density = current_state[0]
         curr_vol = current_state[1]
         comp_choice = current_state[2]
-        #print(f"current_density: {curr_density}, current_volume: {curr_vol}, comp_choice: {comp_choice}")
+        print(f"current_density: {curr_density}, current_volume: {curr_vol}, comp_choice: {comp_choice}")
 
 
 def run_bass(time_per_beat, bass_channel=9):
@@ -191,22 +190,12 @@ def run_bass(time_per_beat, bass_channel=9):
 note_events = []
 note_volumes = []
 
-def run_piano(time_per_beat, piano_channel=10):
-    """
-    This function will continuously play piano comping
-    """
-    print(f"Bass started on channel {piano_channel}")
-    try:
-        # Use the walking_bass_line function from bass_blues.py for a more interesting bass line
-        piano_comp(fs, time_per_beat, piano_channel)
-    except Exception as e:
-        print(f"Error in pianor thread: {e}")
-
 def analyze_density(bpm):
     curr_time = time.time() * 1000
     beat_duration = 60000 / bpm
     two_beat_window = beat_duration * 2
     threshold = 15
+    ret = []
     recent_density = sorted([timestamp for timestamp in note_events if (curr_time - timestamp) <= two_beat_window])
     recent_volumes = [volume for timestamp, volume in note_volumes if (curr_time - timestamp) <= two_beat_window]
 

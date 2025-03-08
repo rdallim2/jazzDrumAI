@@ -50,6 +50,8 @@ def play_bar(fs, time_per_beat, channel=9):
             chord = blues_progression[2]  # V (G) - Turnaround
 
         for _ in range(BEATS_PER_BAR):  # Play 4 notes per bar
+            if _ % 2 == 0:
+                print("bass waiting for bar ready")
             note = random.choice(chord)  # Choose a random note from the chord
             midi_note = note_map[note]
             
@@ -57,47 +59,43 @@ def play_bar(fs, time_per_beat, channel=9):
             fs.noteon(channel, midi_note, 80)  # Slightly reduced velocity for bass
             
             # Calculate a slightly swung rhythm
-            if _ % 2 == 0:  # On beats
-                time.sleep(time_per_beat * 0.6)  # Slightly longer
-            else:  # Off beats
-                time.sleep(time_per_beat * 0.4)  # Slightly shorter
+            time.sleep(time_per_beat)
                 
             fs.noteoff(channel, midi_note)
 
         bar_count += 1  # Move to the next bar
 
-# More interesting walking bass line pattern
-def walking_bass_line(fs, time_per_beat, channel=9):
+# Walking bass patterns for each chord
+C_patterns = [
+    [36, 38, 40, 41],  # C, D, E, F
+    [36, 43, 41, 43],  # C, G, F, G
+    [36, 40, 43, 45],  # C, E, G, A
+    [36, 38, 40, 43]   # C, D, E, G
+]
+
+F_patterns = [
+    [41, 43, 45, 46],  # F, G, A, Bb
+    [41, 45, 48, 46],  # F, A, C, Bb
+    [41, 43, 41, 39],  # F, G, F, E
+    [41, 38, 36, 43]   # F, D, C, G
+]
+
+G_patterns = [
+    [43, 45, 47, 48],  # G, A, B, C
+    [43, 47, 50, 48],  # G, B, D, C
+    [43, 45, 43, 41],  # G, A, G, F
+    [43, 40, 41, 43]   # G, E, F, G
+]
+
+def walking_bass_line(fs, time_per_beat, channel=1):
     """
     Plays a walking bass line for 12-bar blues.
     
     Args:
         fs: FluidSynth instance
         time_per_beat: Duration of each beat in seconds
-        channel: MIDI channel to use for bass (default 9)
+        channel: MIDI channel to use for bass (default 1)
     """
-    # Walking bass patterns for each chord
-    C_patterns = [
-        [36, 38, 40, 41],  # C, D, E, F
-        [36, 43, 41, 43],  # C, G, F, G
-        [36, 40, 43, 45],  # C, E, G, A
-        [36, 38, 40, 43]   # C, D, E, G
-    ]
-    
-    F_patterns = [
-        [41, 43, 45, 46],  # F, G, A, Bb
-        [41, 45, 48, 46],  # F, A, C, Bb
-        [41, 43, 41, 39],  # F, G, F, E
-        [41, 38, 36, 43]   # F, D, C, G
-    ]
-    
-    G_patterns = [
-        [43, 45, 47, 48],  # G, A, B, C
-        [43, 47, 50, 48],  # G, B, D, C
-        [43, 45, 43, 41],  # G, A, G, F
-        [43, 40, 41, 43]   # G, E, F, G
-    ]
-    
     bar_count = 0
     total_bars = 12
     

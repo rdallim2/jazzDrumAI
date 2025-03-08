@@ -49,7 +49,7 @@ try:
         raise Exception("Failed to load drum SoundFont")
     fs.sfont_select(0, drum_sfid)
     #THE PARAMS BELOW ARE WHAT MAKE THE AUDIO WORK WITH PIANO
-    fs.program_select(0, drum_sfid, 0, 0)  # Program 128 for drum kit
+    fs.program_select(4, drum_sfid, 0, 0)  # Program 128 for drum kit
 except Exception as e:
     print(f"Error loading soundfonts: {e}")
 
