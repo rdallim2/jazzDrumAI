@@ -15,6 +15,10 @@ from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.uix.gridlayout import GridLayout
 from functools import partial
+from kivy.graphics import Color, Rectangle, Ellipse, InstructionGroup
+from kivy.factory import Factory
+from kivy.lang import Builder
+from kivy.core.text import LabelBase
 
 bar_ready = threading.Event()
 
@@ -35,63 +39,194 @@ class DrumMachineGUI(BoxLayout):
         super().__init__(**kwargs)
         self.orientation = 'vertical'
         self.padding = 20
-        self.spacing = 10
+        self.spacing = 15
         self.running_threads = []
         self.fs = None
         self.output_device = None
         self.input_device = None
 
-        # Title
-        self.add_widget(Label(
-            text='JazzDrumAI',
-            font_size='32sp',
-            size_hint_y=None,
-            height=60
-        ))
+        # Set dark mode background
+        with self.canvas.before:
+            # Dark background (almost black)
+            Color(0.12, 0.12, 0.14, 1)  # Very dark gray (nearly black)
+            self.bg_rect = Rectangle(pos=self.pos, size=self.size)
+        
+        # Update rectangles when window size changes
+        self.bind(size=self._update_rect, pos=self._update_rect)
 
-        # Tempo Selection
-        tempo_layout = GridLayout(cols=2, size_hint_y=None, height=100)
-        self.tempo_label = Label(text='Tempo: 120 BPM')
-        tempo_layout.add_widget(self.tempo_label)
+        # Title with better fonts and styling
+        title_box = BoxLayout(orientation='vertical', size_hint_y=None, height=100)
+        
+        title_label = Label(
+            text='AI JAM BAND',
+            font_name='Roboto',
+            font_size='42sp',
+            bold=True,
+            color=(0.9, 0.9, 0.9, 1),  # Light gray text for dark mode
+            size_hint_y=None,
+            height=80
+        )
+        title_box.add_widget(title_label)
+        
+        subtitle_label = Label(
+            text='Create music with AI',
+            font_name='Roboto',
+            font_size='16sp',
+            italic=True,
+            color=(0.7, 0.7, 0.7, 1),  # Medium gray for subtitle
+            size_hint_y=None,
+            height=20
+        )
+        title_box.add_widget(subtitle_label)
+        
+        self.add_widget(title_box)
+
+        # Create a container for the controls with a slightly lighter background
+        controls_container = BoxLayout(
+            orientation='vertical',
+            padding=[15, 15],
+            spacing=15
+        )
+        
+        with controls_container.canvas.before:
+            Color(0.18, 0.18, 0.2, 1)  # Slightly lighter dark gray for controls area
+            self.controls_bg = Rectangle(pos=controls_container.pos, size=controls_container.size)
+        
+        controls_container.bind(size=self._update_controls_bg, pos=self._update_controls_bg)
+
+        # Tempo Selection with modern slider
+        tempo_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=80, spacing=5)
+        
+        # Tempo label with icon
+        tempo_header = BoxLayout(size_hint_y=None, height=30)
+        tempo_icon = Label(
+            text='♪',  # Music note icon
+            font_name='Roboto',
+            font_size='20sp',
+            size_hint_x=None,
+            width=30,
+            color=(0.6, 0.8, 1.0, 1)  # Soft blue for icons
+        )
+        tempo_header.add_widget(tempo_icon)
+        
+        self.tempo_label = Label(
+            text='Tempo: 120 BPM',
+            font_name='Roboto',
+            font_size='18sp',
+            bold=True,
+            color=(0.9, 0.9, 0.9, 1),  # Light gray text
+            halign='left',
+            valign='middle'
+        )
+        tempo_header.add_widget(self.tempo_label)
+        tempo_layout.add_widget(tempo_header)
+        
+        # Slider with value display
+        tempo_slider_layout = BoxLayout(size_hint_y=None, height=40)
+        slow_label = Label(
+            text='Slow',
+            font_name='Roboto',
+            size_hint_x=None,
+            width=50,
+            color=(0.7, 0.7, 0.7, 1)  # Medium gray
+        )
+        tempo_slider_layout.add_widget(slow_label)
         
         self.tempo_slider = Slider(
             min=60,
             max=350,
             value=120,
             step=1,
-            size_hint_x=0.8
+            size_hint_x=0.7
         )
         self.tempo_slider.bind(value=self.on_tempo_change)
-        tempo_layout.add_widget(self.tempo_slider)
-        self.add_widget(tempo_layout)
+        tempo_slider_layout.add_widget(self.tempo_slider)
+        
+        fast_label = Label(
+            text='Fast',
+            font_name='Roboto',
+            size_hint_x=None,
+            width=50,
+            color=(0.7, 0.7, 0.7, 1)  # Medium gray
+        )
+        tempo_slider_layout.add_widget(fast_label)
+        tempo_layout.add_widget(tempo_slider_layout)
+        
+        controls_container.add_widget(tempo_layout)
 
-        # Mode Selection
+        # Mode Selection with styled spinner
+        mode_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=80, spacing=5)
+        
+        # Mode label with icon
+        mode_header = BoxLayout(size_hint_y=None, height=30)
+        mode_icon = Label(
+            text='★',  # Star icon
+            font_name='Roboto',
+            font_size='20sp',
+            size_hint_x=None,
+            width=30,
+            color=(0.6, 0.8, 1.0, 1)  # Soft blue for icons
+        )
+        mode_header.add_widget(mode_icon)
+        
+        mode_title = Label(
+            text='Playing Mode',
+            font_name='Roboto',
+            font_size='18sp',
+            bold=True,
+            color=(0.9, 0.9, 0.9, 1),  # Light gray text
+            halign='left',
+            valign='middle'
+        )
+        mode_header.add_widget(mode_title)
+        mode_layout.add_widget(mode_header)
+        
+        # Styled spinner
         self.mode_spinner = Spinner(
             text='Select Mode',
+            font_name='Roboto',
             values=('Drums Only', 'Piano with Drums', 'You play Piano, with Bass with Drums', 'Bass with Drums', 'Piano/Bass/Drums'),
-            size_hint=(None, None),
-            size=(300, 50),
-            pos_hint={'center_x': 0.5}
+            size_hint_y=None,
+            height=40,
+            background_color=(0.25, 0.25, 0.3, 1),  # Dark blue-gray background
+            background_normal='',
+            color=(0.9, 0.9, 0.9, 1),  # Light gray text
+            option_cls=Factory.get('SpinnerOption'),
+            sync_height=True
         )
-        self.add_widget(self.mode_spinner)
+        mode_layout.add_widget(self.mode_spinner)
+        
+        controls_container.add_widget(mode_layout)
 
-        # Control Buttons
+        # Control Buttons with improved styling
         control_layout = BoxLayout(
             orientation='horizontal',
             size_hint_y=None,
-            height=50,
-            spacing=10,
-            padding=10
+            height=60,
+            spacing=20,
+            padding=[10, 10]
         )
         
         self.start_button = Button(
-            text='Start',
+            text='START',
+            font_name='Roboto',
+            font_size='18sp',
+            bold=True,
+            background_color=(0.2, 0.5, 0.3, 1),  # Dark green
+            background_normal='',
+            color=(0.9, 0.9, 0.9, 1),  # Light gray text
             size_hint_x=0.5
         )
         self.start_button.bind(on_press=self.start_performance)
         
         self.stop_button = Button(
-            text='Stop',
+            text='STOP',
+            font_name='Roboto',
+            font_size='18sp',
+            bold=True,
+            background_color=(0.5, 0.2, 0.2, 1),  # Dark red
+            background_normal='',
+            color=(0.9, 0.9, 0.9, 1),  # Light gray text
             size_hint_x=0.5,
             disabled=True
         )
@@ -99,18 +234,57 @@ class DrumMachineGUI(BoxLayout):
         
         control_layout.add_widget(self.start_button)
         control_layout.add_widget(self.stop_button)
-        self.add_widget(control_layout)
+        controls_container.add_widget(control_layout)
 
-        # Status Label
+        # Status Label with improved styling
+        status_layout = BoxLayout(size_hint_y=None, height=50, padding=[5, 5])
+        
+        with status_layout.canvas.before:
+            Color(0.15, 0.15, 0.17, 1)  # Very dark gray for status background
+            self.status_bg = Rectangle(pos=status_layout.pos, size=status_layout.size)
+        
+        status_layout.bind(size=self._update_status_bg, pos=self._update_status_bg)
+        
+        status_icon = Label(
+            text='🎵',  # Music note emoji
+            font_name='Roboto',
+            font_size='20sp',
+            size_hint_x=None,
+            width=30
+        )
+        status_layout.add_widget(status_icon)
+        
         self.status_label = Label(
             text='Ready to play',
-            size_hint_y=None,
-            height=50
+            font_name='Roboto',
+            font_size='16sp',
+            color=(0.8, 0.8, 0.8, 1),  # Light gray text
+            bold=True
         )
-        self.add_widget(self.status_label)
-
+        status_layout.add_widget(self.status_label)
+        
+        controls_container.add_widget(status_layout)
+        
+        # Add the controls container to the main layout
+        self.add_widget(controls_container)
+        
         # Initialize FluidSynth and MIDI
         self.initialize_audio()
+
+    def _update_rect(self, instance, value):
+        """Update the canvas rectangles with window size"""
+        self.bg_rect.pos = instance.pos
+        self.bg_rect.size = instance.size
+
+    def _update_controls_bg(self, instance, value):
+        """Update the controls background rectangle"""
+        self.controls_bg.pos = instance.pos
+        self.controls_bg.size = instance.size
+
+    def _update_status_bg(self, instance, value):
+        """Update the status background rectangle"""
+        self.status_bg.pos = instance.pos
+        self.status_bg.size = instance.size
 
     def initialize_audio(self):
         try:
@@ -544,8 +718,9 @@ class DrumMachineGUI(BoxLayout):
                     time.sleep(0.1)
                 except:
                     pass
-
+                self.running_threads.clear()
                 print(f"running threasds: {self.running_threads}")
+                
                 '''    
                 try:
                     fs.delete()
@@ -647,8 +822,25 @@ class DrumMachineGUI(BoxLayout):
 
 class DrumMachineApp(App):
     def build(self):
-        Window.size = (500, 400)
+        # Add custom styling to Kivy widgets
+        self.apply_styles()
+        Window.size = (600, 500)  # Slightly larger window
+        Window.clearcolor = (0.12, 0.12, 0.14, 1)  # Very dark gray fallback color
         return DrumMachineGUI()
+    
+    def apply_styles(self):
+        # Set custom global styles for widgets
+        
+        # Custom styling for SpinnerOption
+        Builder.load_string('''
+<SpinnerOption>:
+    background_color: 0.22, 0.22, 0.25, 1
+    background_normal: ''
+    color: 0.9, 0.9, 0.9, 1
+    font_size: '16sp'
+    font_name: 'Roboto'
+    height: 40
+''')
 
 if __name__ == '__main__':
     DrumMachineApp().run() 
