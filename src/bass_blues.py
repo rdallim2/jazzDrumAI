@@ -1,5 +1,9 @@
 import random
 import time
+import threading
+
+from sync import instrument_sync
+
 
 # Define the 12-bar blues progression in C
 blues_progression = [
@@ -49,9 +53,12 @@ def play_bar(fs, time_per_beat, channel=9):
         else:
             chord = blues_progression[2]  # V (G) - Turnaround
 
-        for _ in range(BEATS_PER_BAR):  # Play 4 notes per bar
+        for _ in range(BEATS_PER_BAR):  # Play 4 notes per bar            
+            print(f"Beat num: {_}")          
             if _ % 2 == 0:
                 print("bass waiting for bar ready")
+                instrument_sync.wait()
+                print("cleared!")
             note = random.choice(chord)  # Choose a random note from the chord
             midi_note = note_map[note]
             
@@ -59,9 +66,10 @@ def play_bar(fs, time_per_beat, channel=9):
             fs.noteon(channel, midi_note, 80)  # Slightly reduced velocity for bass
             
             # Calculate a slightly swung rhythm
-            time.sleep(time_per_beat)
+            time.sleep(time_per_beat + .001)
                 
-            fs.noteoff(channel, midi_note)
+            fs.noteoff(channel, midi_note)  
+
 
         bar_count += 1  # Move to the next bar
 
@@ -117,7 +125,9 @@ def walking_bass_line(fs, time_per_beat, channel=1):
         else:
             pattern = random.choice(G_patterns)  # V (G) - Turnaround
         
-        for note in pattern:
+        for i, note in enumerate(pattern):
+            if i % 2 == 0:
+                instrument_sync.wait()
             fs.noteon(channel, note, 80)
             time.sleep(time_per_beat * 0.95)  # Leave a tiny gap between notes
             fs.noteoff(channel, note)

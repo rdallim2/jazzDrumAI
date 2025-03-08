@@ -51,7 +51,8 @@ def piano_comp(fs, time_per_beat, tempo, channel=10):
     trip_spacing = get_trip_spacing(tempo)
     print(f"Piano starting on channel {channel}")
     chord_voicings = piano_chords["C7"]
-    chord_voicing = random.choice(chord_voicings)
+    #chord_voicing = random.choice(chord_voicings)
+    chord_voicing = chord_voicings[1]
     init_phrase(channel, fs, time_per_beat, trip_spacing, chord_voicing)
     
     while True:
@@ -79,7 +80,8 @@ def piano_comp(fs, time_per_beat, tempo, channel=10):
         # Choose and play a random phrase
         phrase_num = random.randint(1, 3)  # Choose a random phrase between 1 and 3
         print(f"Playing piano phrase {phrase_num} on bar {current_bar}")
-        
+
+
         if phrase_num == 1:
             phrase_one(channel, fs, time_per_beat, trip_spacing, chord_voicing)
         elif phrase_num == 2:

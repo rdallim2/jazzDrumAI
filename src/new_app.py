@@ -14,6 +14,8 @@ fs = fluidsynth.Synth()
 fs.start(driver="coreaudio")
 fs.setting('synth.gain', 1.35)
 
+from sync import *
+
 pygame.midi.init()
 pygame.midi.init()
 
@@ -146,6 +148,7 @@ def run_drums(time_per_beat, tempo, player_count):
     curr_density = '8'
     curr_vol = '0'
     while True:
+        instrument_sync.set()
         if comp_choice == 'n':  
             swing_pattern(fs, time_per_beat)
         else:
@@ -175,6 +178,7 @@ def run_drums(time_per_beat, tempo, player_count):
         curr_density = current_state[0]
         curr_vol = current_state[1]
         comp_choice = current_state[2]
+        instrument_sync.wait()
         #print(f"current_density: {curr_density}, current_volume: {curr_vol}, comp_choice: {comp_choice}")
 
 

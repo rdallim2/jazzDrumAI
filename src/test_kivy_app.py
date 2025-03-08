@@ -16,6 +16,8 @@ from kivy.clock import Clock
 from kivy.uix.gridlayout import GridLayout
 from functools import partial
 
+bar_ready = threading.Event()
+
 # Import everything from new_app.py
 from new_app import *
 from bass_blues import *
@@ -153,49 +155,59 @@ class DrumMachineGUI(BoxLayout):
     def run_drums_wrapper(self, time_per_beat, tempo, players):
         try:
             trip_spacing = get_trip_spacing(tempo)
-            # Initialize state variables outside the loop
             comp_choice = 'n'  # Start with swing pattern
             curr_density = '8'
             curr_vol = '0'
-            
-
             while not self.stop_event.is_set():
-                bar_ready.set()
+                print("clearing")
+                swing_pattern(fs, time_per_beat, trip_spacing)
+                
+                #instrument_sync.set()
                 # Execute the current pattern
+                #instrument_sync.clear()
                 if comp_choice == 'n':  
+                    print("clearing")
                     swing_pattern(fs, time_per_beat, trip_spacing)
                 else:
                     if curr_density == '8':
                         if curr_vol == 'l':
                             eigth_phrases = [s8_s_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
+                            print("clearing")
                             random.choice(eigth_phrases)(fs, time_per_beat, trip_spacing)
                         elif curr_vol == 'm':
                             s8_med_phrases = [s8_s_one, s8_s_two, s8_crash_one, s8_crash_two, s8_b_one]
+                            print("clearing")
                             random.choice(s8_med_phrases)(fs, time_per_beat, trip_spacing)
                         else:
                             s8_high_phrases = [s8_crash_one, s8_crash_two]
+                            print("clearing")
                             random.choice(s8_high_phrases)(fs, time_per_beat, trip_spacing)
                     elif curr_density == 't8':
                         if curr_vol == 'l':
                             t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]
+                            print("clearing")
                             random.choice(t_eighth_phrases)(fs, time_per_beat)
                         elif curr_vol == 'm': 
                             t_med_phrases = [t8_s_one, t8_s_two, t8_crash_one, t8_crash_two]
+                            print("clearing")
                             random.choice(t_med_phrases)(fs, time_per_beat)
                         else:
                             t_high_phrases = [t8_crash_one, t8_crash_two]
+                            print("clearing")
                             random.choice(t_high_phrases)(fs, time_per_beat)
 
-                # Check stop event after pattern execution
-                if self.stop_event.is_set():
-                    break
+                # Signal that a phrase has completed
+
+                # Calculate remaining time in bar
 
                 # Choose next pattern
                 current_state = choose_next_phrase(tempo, players)
                 curr_density = current_state[0]
                 curr_vol = current_state[1]
                 comp_choice = current_state[2]
-                #print(f"current_density: {curr_density}, current_volume: {curr_vol}, comp_choice: {comp_choice}")
+                #instrument_sync.clear()
+                
+                
         except Exception as e:
             print(f"Error in drums thread: {e}")
 
@@ -221,28 +233,46 @@ class DrumMachineGUI(BoxLayout):
     def run_bass_wrapper(self, time_per_beat, bass_channel=9):
         try:
             while not self.stop_event.is_set():
-                # Simple bass pattern
-                if not self.stop_event.is_set():
-                    walking_bass_line(fs, time_per_beat, bass_channel)          
+                # Play bass pattern
+                play_bar(fs, time_per_beat, channel=9)  # Get the current pattern
+                
+
         except Exception as e:
             print(f"Error in bass thread: {e}")
 
     def run_piano_wrapper(self, time_per_beat, tempo, piano_channel=10):
         try:
             while not self.stop_event.is_set():
-                # Simple piano pattern
-                if not self.stop_event.is_set():
-                    piano_comp(fs, time_per_beat, tempo, piano_channel)  # Fixed parameter order          
+                # Play piano pattern
+                bar_start = time.time()
+                
+                # Get current chord and play piano comp with sync points
+                piano_comp(fs, time_per_beat, tempo, piano_channel)
+                
+                # Calculate remaining time in bar
+                elapsed = time.time() - bar_start
+                remaining = (time_per_beat * 4) - elapsed
+                if remaining > 0:
+                    time.sleep(remaining)
+                    
         except Exception as e:
             print(f"Error in piano thread: {e}")
 
     def start_performance(self, instance):
         global fs
+        
+        # Always reinitialize FluidSynth
+        if fs is not None:
+            try:
+                fs.delete()
+            except:
+                pass
+            fs = None
+            
+        self.initialize_audio()
         if fs is None:
-            self.initialize_audio()
-            if fs is None:
-                self.status_label.text = 'Error: Audio not initialized'
-                return
+            self.status_label.text = 'Error: Audio not initialized'
+            return
 
         # Reset stop event
         self.stop_event.clear()
@@ -324,9 +354,10 @@ class DrumMachineGUI(BoxLayout):
                     args=(time_per_beat, 9)
                 )
                 drum_thread.daemon = True
-                bass_thread.daemon = True
-                drum_thread.start()
+                bass_thread.daemon = True                
                 bass_thread.start()
+                drum_thread.start()
+
                 self.running_threads.extend([drum_thread, bass_thread])
 
             elif players == 5:
@@ -360,11 +391,19 @@ class DrumMachineGUI(BoxLayout):
             self.status_label.text = f'Error starting performance: {str(e)}'
 
     def stop_performance(self, instance):
-        # Signal threads to stop
+        # First, signal threads to stop
         self.stop_event.set()
         print("Stop performance toggled")
         
-        # Immediate audio cleanup - just stop notes
+        # Wait for threads to finish with a longer timeout
+        for thread in self.running_threads:
+            if thread.is_alive():
+                thread.join(timeout=1.0)  # Increased timeout to 1 second
+        
+        # Clear the thread list
+        self.running_threads.clear()
+        
+        # Now that threads are stopped, cleanup audio
         try:
             global fs
             if fs is not None:
@@ -374,16 +413,15 @@ class DrumMachineGUI(BoxLayout):
                         fs.noteoff(channel, note)
                     fs.all_notes_off(channel)
                     fs.all_sounds_off(channel)
+                
+                # Sleep briefly to allow audio to clear
+                time.sleep(0.5)
+                
+                # Delete and cleanup FluidSynth instance
+                fs.delete()
+                fs = None
         except Exception as e:
-            print(f"Error during immediate cleanup: {e}")
-        
-        # Wait for threads to finish (with shorter timeout)
-        for thread in self.running_threads:
-            if thread.is_alive():
-                thread.join(timeout=0.1)
-        
-        # Clear the thread list
-        self.running_threads.clear()
+            print(f"Error during audio cleanup: {e}")
         
         # Reset UI
         self.status_label.text = 'Ready to play'
