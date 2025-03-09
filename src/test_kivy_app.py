@@ -29,8 +29,10 @@ fs_lock = Lock()
 from new_app import *
 from bass_blues import *
 from piano_comp import *
-from sync import stop_event
+from sync import stop_event, instrument_sync
 
+# Import the callback system from bass_blues
+from bass_blues import register_bar_update_callback, unregister_bar_update_callback
 
 bar_ready = threading.Event()
 
@@ -44,6 +46,7 @@ class DrumMachineGUI(BoxLayout):
         self.fs = None
         self.output_device = None
         self.input_device = None
+        self.current_bar = 0  # Track current bar for chord display
 
         # Set dark mode background
         with self.canvas.before:
@@ -94,6 +97,133 @@ class DrumMachineGUI(BoxLayout):
         
         controls_container.bind(size=self._update_controls_bg, pos=self._update_controls_bg)
 
+        # Add 12-bar blues lead sheet display
+        lead_sheet_title = Label(
+            text='12-Bar Blues in C - Lead Sheet',
+            font_name='Roboto',
+            font_size='20sp',
+            bold=True,
+            color=(0.6, 0.8, 1.0, 1),  # Light blue
+            size_hint_y=None,
+            height=40
+        )
+        controls_container.add_widget(lead_sheet_title)
+        
+        # Create a lead sheet style display
+        lead_sheet = BoxLayout(
+            orientation='vertical',
+            size_hint_y=None,
+            height=190,
+            spacing=5,
+            padding=[5, 5]
+        )
+        
+        with lead_sheet.canvas.before:
+            Color(0.15, 0.15, 0.17, 1)  # Slightly darker background for lead sheet
+            self.lead_sheet_bg = Rectangle(pos=lead_sheet.pos, size=lead_sheet.size)
+        
+        lead_sheet.bind(size=self._update_lead_sheet_bg, pos=self._update_lead_sheet_bg)
+        
+        # Title and notation
+        notation_box = BoxLayout(size_hint_y=None, height=30)
+        notation_label = Label(
+            text='Traditional 12-Bar Blues Pattern (4/4 Time)',
+            font_name='Roboto',
+            font_size='16sp',
+            italic=True,
+            color=(0.8, 0.8, 0.8, 1)
+        )
+        notation_box.add_widget(notation_label)
+        lead_sheet.add_widget(notation_box)
+        
+        # Create measure grid - 3 rows of 4 measures each
+        measure_style = {
+            'background_color': (0.22, 0.22, 0.25, 1),
+            'background_normal': '',
+            'color': (0.9, 0.9, 0.9, 1),
+            'font_name': 'Roboto',
+            'font_size': '22sp',
+            'bold': True,
+            'disabled': True,
+            'size_hint_y': None,
+            'height': 45
+        }
+        
+        # First line (bars 1-4)
+        line1 = BoxLayout(size_hint_y=None, height=45)
+        for i in range(4):
+            bar_num = Label(
+                text=f"{i+1}",
+                font_name='Roboto',
+                font_size='12sp',
+                color=(0.6, 0.6, 0.6, 1),
+                size_hint_x=None,
+                width=20
+            )
+            line1.add_widget(bar_num)
+            
+            measure = Button(
+                text='C7',
+                **measure_style
+            )
+            line1.add_widget(measure)
+        lead_sheet.add_widget(line1)
+        
+        # Second line (bars 5-8)
+        line2 = BoxLayout(size_hint_y=None, height=45)
+        chords2 = ['F7', 'F7', 'C7', 'C7']
+        for i, chord in enumerate(chords2):
+            bar_num = Label(
+                text=f"{i+5}",
+                font_name='Roboto',
+                font_size='12sp',
+                color=(0.6, 0.6, 0.6, 1),
+                size_hint_x=None,
+                width=20
+            )
+            line2.add_widget(bar_num)
+            
+            measure = Button(
+                text=chord,
+                **measure_style
+            )
+            line2.add_widget(measure)
+        lead_sheet.add_widget(line2)
+        
+        # Third line (bars 9-12)
+        line3 = BoxLayout(size_hint_y=None, height=45)
+        chords3 = ['G7', 'F7', 'C7', 'G7']
+        for i, chord in enumerate(chords3):
+            bar_num = Label(
+                text=f"{i+9}",
+                font_name='Roboto',
+                font_size='12sp',
+                color=(0.6, 0.6, 0.6, 1),
+                size_hint_x=None,
+                width=20
+            )
+            line3.add_widget(bar_num)
+            
+            measure = Button(
+                text=chord,
+                **measure_style
+            )
+            line3.add_widget(measure)
+        lead_sheet.add_widget(line3)
+        
+        # Store references to all measure buttons for highlighting
+        self.measure_buttons = []
+        
+        # Extract all actual measure buttons (not the bar numbers)
+        for row in [line1, line2, line3]:
+            measures = [child for child in row.children if isinstance(child, Button)]
+            # Reverse because Kivy stores children in reverse order
+            measures.reverse()
+            self.measure_buttons.extend(measures)
+            
+        # Add the lead sheet to the controls container
+        controls_container.add_widget(lead_sheet)
+        
         # Tempo Selection with modern slider
         tempo_layout = BoxLayout(orientation='vertical', size_hint_y=None, height=80, spacing=5)
         
@@ -280,6 +410,11 @@ class DrumMachineGUI(BoxLayout):
         """Update the controls background rectangle"""
         self.controls_bg.pos = instance.pos
         self.controls_bg.size = instance.size
+        
+    def _update_lead_sheet_bg(self, instance, value):
+        """Update the lead sheet background rectangle"""
+        self.lead_sheet_bg.pos = instance.pos
+        self.lead_sheet_bg.size = instance.size
 
     def _update_status_bg(self, instance, value):
         """Update the status background rectangle"""
@@ -321,7 +456,7 @@ class DrumMachineGUI(BoxLayout):
                 # Set up piano on channel 10
                 fs.sfont_select(10, piano_sfid)
                 fs.program_select(10, piano_sfid, 0, 0)  # Piano on channel 10
-                fs.cc(10, 7, 45)  # Set piano volume
+                fs.cc(10, 7, 40)  # Set piano volume
                 
                 # Set up bass on channel 9
                 fs.sfont_select(9, piano_sfid)
@@ -361,41 +496,41 @@ class DrumMachineGUI(BoxLayout):
             curr_vol = '0'
             while not stop_event.is_set():
                 try:
-                    print("clearing")
+                    #print("clearing")
                     swing_pattern(fs, time_per_beat, trip_spacing)
                     
                     #instrument_sync.set()
                     # Execute the current pattern
                     #instrument_sync.clear()
                     if comp_choice == 'n':  
-                        print("clearing")
+                        #print("clearing")
                         swing_pattern(fs, time_per_beat, trip_spacing)
                     else:
                         if curr_density == '8':
                             if curr_vol == 'l':
-                                eigth_phrases = [s8_s_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
-                                print("clearing")
+                                eigth_phrases = [s8_s_one, s8_s_two, s8_b_one]
+                                #print("clearing")
                                 random.choice(eigth_phrases)(fs, time_per_beat, trip_spacing)
                             elif curr_vol == 'm':
-                                s8_med_phrases = [s8_s_one, s8_s_two, s8_b_one]
-                                print("clearing")
+                                s8_med_phrases = [s8_s_one, s8_s_two, s8_b_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
+                                #rint("clearing")
                                 random.choice(s8_med_phrases)(fs, time_per_beat, trip_spacing)
                             else:
-                                s8_high_phrases = [s8_crash_one, s8_crash_two]
-                                print("clearing")
-                                random.choice(s8_high_phrases)(fs, time_per_beat)
+                                s8_high_phrases = [s8_crash_one, s8_crash_two, s8_s_one, s8_s_two, s8_b_one, s8_s_two]
+                                #print("clearing")
+                                random.choice(s8_high_phrases)(fs, time_per_beat, trip_spacing)
                         elif curr_density == 't8':
                             if curr_vol == 'l':
                                 t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]
-                                print("clearing")
+                                #print("clearing")
                                 random.choice(t_eighth_phrases)(fs, time_per_beat)
                             elif curr_vol == 'm': 
-                                t_med_phrases = [t8_s_one, t8_s_two, t8_crash_one, t8_crash_two]
-                                print("clearing")
+                                t_med_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four, t8_crash_one, t8_crash_two]
+                                #print("clearing")
                                 random.choice(t_med_phrases)(fs, time_per_beat)
                             else:
-                                t_high_phrases = [t8_crash_one, t8_crash_two]
-                                print("clearing")
+                                t_high_phrases = [t8_crash_one, t8_crash_two, t8_crash_three, t8_s_one, t8_s_two, t8_s_three]
+                                #print("clearing")
                                 random.choice(t_high_phrases)(fs, time_per_beat)
 
                     # Signal that a phrase has completed
@@ -439,7 +574,7 @@ class DrumMachineGUI(BoxLayout):
             try:
                 for msg in port:
                     if msg.type == "note_on":
-                        if msg.note >= 35 and msg.note <= 81:  
+                        if msg.note >= 35 and msg.note <= 88:  
                             fs.noteon(10, msg.note, msg.velocity) 
                         timestamp = time.time() * 1000
                         note_events.append(timestamp)
@@ -737,6 +872,46 @@ class DrumMachineGUI(BoxLayout):
                 
         except Exception as e:
             print(f"Error during cleanup in __del__: {e}")
+
+    def update_chord_display(self, bar_index):
+        """Update the chord display to highlight the current bar"""
+        # Need to run this on the main thread
+        def update_ui(dt):
+            # Reset all measure buttons in the lead sheet
+            for measure in self.measure_buttons:
+                measure.background_color = (0.22, 0.22, 0.25, 1)  # Default dark blue-gray
+                measure.color = (0.9, 0.9, 0.9, 1)  # Reset to default light gray text
+                
+            # Calculate current index (0-11)
+            current_index = bar_index % 12
+            
+            # Highlight the current bar in the lead sheet
+            if 0 <= current_index < len(self.measure_buttons):
+                # Highlight in the lead sheet
+                self.measure_buttons[current_index].background_color = (0.5, 0.7, 1.0, 1)  # Bright blue highlight
+                self.measure_buttons[current_index].color = (1, 1, 1, 1)  # Bright white text
+            
+            # Save the current bar for future reference
+            self.current_bar = bar_index
+        
+        # Schedule the UI update on the main thread
+        Clock.schedule_once(update_ui, 0)
+
+    def on_bar_changed(self, bar_index):
+        """Callback that gets called when the bar changes in bass_blues.py"""
+        print(f"Bar changed to {bar_index}")
+        # Update the UI to reflect the current bar
+        self.update_chord_display(bar_index)
+        
+        # Schedule the chord to dim after the bar duration has passed
+        # This ensures it only stays highlighted while being played
+        tempo = self.tempo_slider.value
+        time_per_bar = (60 / tempo) * 4  # 4 beats per bar
+        
+        # We'll schedule the reset to happen slightly before the next bar
+        # to ensure smooth transitions
+        reset_time = max(0.1, time_per_bar * 0.85)  # 85% of bar duration
+        Clock.schedule_once(lambda dt: self.update_chord_display(-1), reset_time)
 
 class DrumMachineApp(App):
     def build(self):

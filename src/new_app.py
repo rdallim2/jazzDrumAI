@@ -77,8 +77,8 @@ choose_phrase_matrix = [
 
 phrase_volume_matrix = [    
     [.1, .3, .4],
-    [.3, .4, .5],
-    [.4, .5, .6]
+    [.4, .5, .8],
+    [.6, .8, 95]
 ]
 
 drum_phrase_type_matrix = [
@@ -89,9 +89,9 @@ drum_phrase_type_matrix = [
 ]
 
 drum_comp_vs_time_matrix = [
-    [.6, .5, .5],
-    [.5, .5, .7],
-    [.5, .7, .9]
+    [.3, .5, .6],
+    [.8, .7, .8],
+    [.9, .9, .95]
 ]
 
 def choose_next_phrase(tempo, player_count):
@@ -110,18 +110,18 @@ def choose_next_phrase(tempo, player_count):
         #create density/volume matrix
         adjusted_tempo = tempo - 50 #tempo as proportion of available tempos 50-350
         triplet_or_not = choose_phrase_matrix[vol][den]
-        #print(f"original triplet_or_not: {triplet_or_not}")
-        #print(f"equation: {triplet_or_not} + {1.0 - triplet_or_not} * {adjusted_tempo / 200}")
+        print(f"original triplet_or_not: {triplet_or_not}")
+        print(f"equation: {triplet_or_not} + {1.0 - triplet_or_not} * {adjusted_tempo / 200}")
         triplet_or_not = triplet_or_not + (1.0 - triplet_or_not) * (adjusted_tempo / 200)
 
-        #print(f"triplet_or_not: {triplet_or_not}")
+        print(f"triplet_or_not: {triplet_or_not}")
         #percent play 8th based ideas over trip
-        #print(f"volume: {vol}, density: {den}")
+        print(f"volume: {vol}, density: {den}")
 
 
         #percent of time to play more crashes
         crash_percentage = phrase_volume_matrix[vol][den]
-        #print(f"crash percentage: {crash_percentage}")
+        print(f"crash percentage: {crash_percentage}")
         density = ['8', 't8']
         density_probs = [triplet_or_not, 1.0 - triplet_or_not]
         density_choice = random.choices(density, density_probs)[0]
@@ -133,10 +133,12 @@ def choose_next_phrase(tempo, player_count):
             volume_choice = 'h'
 
         comp_amount_choice = drum_comp_vs_time_matrix[int(den)][int(vol)]
+        print(f"den: {den}, vol: {vol}")
+        print(f"Comping amount: {comp_amount_choice}")
         comp = ['y', 'n']
         comp_prob = [comp_amount_choice, 1.0 - comp_amount_choice]
         comp_choice = random.choices(comp, comp_prob)[0]
-        #print(f"Comping: {comp_choice}")
+        print(f"Comping: {comp_choice}")
 
         return [density_choice, volume_choice, comp_choice]
         #REMEMBER- NOW NEED TO ACCOUNT FOR HOW MUCH TIME YOU NEED TO LAY OUT
@@ -228,16 +230,16 @@ def analyze_density(bpm):
     print(f"Density in the last two beats: {density} notes")    
     ret_den = 0 
     ret_vol = 0
-    if density > 6:  # Example threshold for high density (adjust as needed)
+    if density > 3:  # Example threshold for high density (adjust as needed)
         ret_den = 2
-    elif 3 < density <= 6:
+    elif 1 < density <= 3:
         ret_den = 1
-    elif density <= 3:
+    elif density <= 1:
         ret_den = 0
 
-    if avg_volume >= 125:
+    if avg_volume >= 100:
         ret_vol = 2
-    elif 20 < avg_volume <= 124:
+    elif 20 < avg_volume <= 100:
         ret_vol = 1
     else:
         ret_vol = 0

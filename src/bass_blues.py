@@ -4,6 +4,31 @@ import threading
 
 from sync import instrument_sync, stop_event
 
+# Global variable for tracking current bar
+bar_count = 0
+
+# List to store callback functions for bar updates
+bar_update_callbacks = []
+
+def register_bar_update_callback(callback_func):
+    """Register a function to be called when the bar changes"""
+    if callback_func not in bar_update_callbacks:
+        bar_update_callbacks.append(callback_func)
+        print(f"Registered callback: {callback_func.__name__}")
+
+def unregister_bar_update_callback(callback_func):
+    """Unregister a previously registered callback function"""
+    if callback_func in bar_update_callbacks:
+        bar_update_callbacks.remove(callback_func)
+        print(f"Unregistered callback: {callback_func.__name__}")
+
+def notify_bar_update(current_bar):
+    """Notify all registered callbacks about the bar update"""
+    for callback in bar_update_callbacks:
+        try:
+            callback(current_bar)
+        except Exception as e:
+            print(f"Error in bar update callback: {e}")
 
 # Define the 12-bar blues progression in C
 blues_progression = [
@@ -54,12 +79,12 @@ def play_bar(fs, time_per_beat, channel=9):
             chord = blues_progression[2]  # V (G) - Turnaround
 
         for _ in range(BEATS_PER_BAR):  # Play 4 notes per bar    
-            while not stop_event.is_set():
-                print(f"Beat num: {_}")          
+            if not stop_event.is_set():
+                #print(f"Beat num: {_}")          
                 if _ % 2 == 0:
-                    print("bass waiting for bar ready")
+                    #print("bass waiting for bar ready")
                     instrument_sync.wait()
-                    print("cleared!")
+                    #print("cleared!")
                 note = random.choice(chord)  # Choose a random note from the chord
                 midi_note = note_map[note]
                 
