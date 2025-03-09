@@ -185,7 +185,7 @@ class DrumMachineGUI(BoxLayout):
         self.mode_spinner = Spinner(
             text='Select Mode',
             font_name='Roboto',
-            values=('Drums Only', 'Piano with Drums', 'You play Piano, with Bass with Drums', 'Bass with Drums', 'Piano/Bass/Drums'),
+            values=('Drums Only', 'Piano with Drums', 'You play Piano, with Bass with Drums', 'Bass with Drums', 'Piano/Bass/Drums', 'You + All AI'),
             size_hint_y=None,
             height=40,
             background_color=(0.25, 0.25, 0.3, 1),  # Dark blue-gray background
@@ -377,13 +377,13 @@ class DrumMachineGUI(BoxLayout):
                                 print("clearing")
                                 random.choice(eigth_phrases)(fs, time_per_beat, trip_spacing)
                             elif curr_vol == 'm':
-                                s8_med_phrases = [s8_s_one, s8_s_two, s8_crash_one, s8_crash_two, s8_b_one]
+                                s8_med_phrases = [s8_s_one, s8_s_two, s8_b_one]
                                 print("clearing")
                                 random.choice(s8_med_phrases)(fs, time_per_beat, trip_spacing)
                             else:
                                 s8_high_phrases = [s8_crash_one, s8_crash_two]
                                 print("clearing")
-                                random.choice(s8_high_phrases)(fs, time_per_beat, trip_spacing)
+                                random.choice(s8_high_phrases)(fs, time_per_beat)
                         elif curr_density == 't8':
                             if curr_vol == 'l':
                                 t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]
@@ -433,43 +433,25 @@ class DrumMachineGUI(BoxLayout):
                     print(f"Error cleaning up drum notes: {e}")
 
     def handle_midi_input_wrapper(self, tempo):
-        try:
-            with mido.open_input(available_ports[3]) as port:
-                print("Listening for Keyboard MIDI input... Press Ctrl+C to exit.")
-                while not stop_event.is_set():
-                    try:
-                        # Use a timeout to check stop_event frequently
-                        if port.poll():
-                            msg = port.receive(block=False)
-                            if msg:
-                                if msg.type == "note_on":
-                                    if fs is not None and msg.note >= 35 and msg.note <= 81:
-                                        fs.noteon(10, msg.note, msg.velocity)  # Changed to channel 10 for piano
-                                    timestamp = time.time() * 1000
-                                    note_events.append(timestamp)
-                                    note_volumes.append((time.time() * 1000, msg.velocity))
-                                elif msg.type == "note_off":
-                                    if fs is not None and msg.note >= 35 and msg.note <= 81:
-                                        fs.noteoff(10, msg.note)  # Changed to channel 10 for piano
-                                analyze_density(tempo)
-                        # Small sleep to prevent CPU hogging
-                        time.sleep(0.001)
-                    except Exception as e:
-                        print(f"Error processing MIDI message: {e}")
-                        if stop_event.is_set():
-                            break
-                        time.sleep(0.1)
-        except Exception as e:
-            print(f"Critical error in MIDI input thread: {e}")
-        finally:
-            print("MIDI input thread exiting cleanly")
-            # Ensure any active piano notes are off
-            if fs is not None:
-                try:
-                    fs.all_notes_off(10)
-                    fs.all_sounds_off(10)
-                except Exception as e:
-                    print(f"Error cleaning up piano notes: {e}")
+        """Safely handle MIDI input with proper error checking and stop_event handling"""
+        with mido.open_input(available_ports[3]) as port:
+            print("Listening for Keyboard MIDI input... Press Ctrl+C to exit.")
+            try:
+                for msg in port:
+                    if msg.type == "note_on":
+                        if msg.note >= 35 and msg.note <= 81:  
+                            fs.noteon(10, msg.note, msg.velocity) 
+                        timestamp = time.time() * 1000
+                        note_events.append(timestamp)
+                        note_volumes.append((time.time() * 1000, msg.velocity))
+                    elif msg.type == "note_off":
+                        if msg.note >= 35 and msg.note <= 81:  
+                            fs.noteoff(10, msg.note)
+                    analyze_density(tempo)
+            except KeyboardInterrupt:
+                print("\nExiting MIDI listener.")
+                #player.close()
+                #pygame.midi.quit()
 
     def run_bass_wrapper(self, time_per_beat, bass_channel=9):
         try:
@@ -543,6 +525,7 @@ class DrumMachineGUI(BoxLayout):
 
     def start_performance(self, instance):
         global fs
+        global stop_event  # Make sure we're using the global stop_event
         
         # Always reinitialize FluidSynth - make this more robust
         if fs is not None:
@@ -586,12 +569,14 @@ class DrumMachineGUI(BoxLayout):
             players = 1
         elif mode == 'Piano with Drums':
             players = 2
-        elif mode == 'Piano and Bass with Drums':
+        elif mode == 'You play Piano, with Bass with Drums':
             players = 3
         elif mode == 'Bass with Drums':
             players = 4
         elif mode == 'Piano/Bass/Drums':
             players = 5
+        elif mode == 'You + All AI':
+            players = 6  # New mode where user plays keyboard with all AI instruments
         else:
             self.status_label.text = 'Please select a mode'
             return
@@ -614,15 +599,15 @@ class DrumMachineGUI(BoxLayout):
                     target=self.run_drums_wrapper,
                     args=(time_per_beat, tempo, players)
                 )
-                midi_thread = threading.Thread(
-                    target=self.handle_midi_input_wrapper,
-                    args=(tempo,)
+                piano_thread = threading.Thread(
+                    target=self.run_piano_wrapper,
+                    args=(time_per_beat, tempo, 10)
                 )
                 drum_thread.daemon = True
-                midi_thread.daemon = True
+                piano_thread.daemon = True
                 drum_thread.start()
-                midi_thread.start()
-                self.running_threads.extend([drum_thread, midi_thread])
+                piano_thread.start()
+                self.running_threads.extend([drum_thread, piano_thread])
             
             elif players == 3:
                 drum_thread = threading.Thread(
@@ -655,10 +640,9 @@ class DrumMachineGUI(BoxLayout):
                     args=(time_per_beat, 9)
                 )
                 drum_thread.daemon = True
-                bass_thread.daemon = True                
+                bass_thread.daemon = True
                 bass_thread.start()
                 drum_thread.start()
-
                 self.running_threads.extend([drum_thread, bass_thread])
 
             elif players == 5:
@@ -681,6 +665,36 @@ class DrumMachineGUI(BoxLayout):
                 piano_thread.start()
                 bass_thread.start()
                 self.running_threads.extend([drum_thread, piano_thread, bass_thread])
+                
+            elif players == 6:  # New mode: You play keyboard + all AI instruments
+                # Start all AI instruments
+                drum_thread = threading.Thread(
+                    target=self.run_drums_wrapper,
+                    args=(time_per_beat, tempo, players)
+                )
+                piano_thread = threading.Thread(
+                    target=self.run_piano_wrapper,
+                    args=(time_per_beat, tempo, 10)
+                )
+                bass_thread = threading.Thread(
+                    target=self.run_bass_wrapper,
+                    args=(time_per_beat, 9)
+                )
+                # Also start MIDI input thread for your keyboard
+                midi_thread = threading.Thread(
+                    target=self.handle_midi_input_wrapper,
+                    args=(tempo,)
+                )
+                drum_thread.daemon = True
+                piano_thread.daemon = True
+                bass_thread.daemon = True
+                midi_thread.daemon = True
+                drum_thread.start()
+                piano_thread.start()
+                bass_thread.start()
+                midi_thread.start()
+                # Make sure to track all threads for proper cleanup
+                self.running_threads.extend([drum_thread, piano_thread, bass_thread, midi_thread])
 
             self.status_label.text = f'Playing - {mode}'
             self.start_button.disabled = True
@@ -721,102 +735,6 @@ class DrumMachineGUI(BoxLayout):
                 self.running_threads.clear()
                 print(f"running threasds: {self.running_threads}")
                 
-                '''    
-                try:
-                    fs.delete()
-                except:
-                    pass
-                fs = None
-                '''
-            '''    
-            if pygame.midi.get_init():
-                try:
-                    pygame.midi.quit()
-                except:
-                    pass
-            '''
-            
-        except Exception as e:
-            print(f"Error during cleanup in __del__: {e}")
-        '''
-        # First disable UI to prevent multiple stops
-        self.stop_button.disabled = True
-        for thread in self.running_threads:
-            try:
-                if thread.is_alive():
-                    thread.join(timeout=max_wait_time)
-            except Exception as e:
-                print(f"Error joining thread: {e}")
-        
-        # Signal threads to stop
-
-        if fs is not None:
-            try:
-                # First ensure all notes are off
-                for channel in [0, 9, 10]:
-                    try:
-                        fs.all_notes_off(channel)
-                        fs.all_sounds_off(channel)
-                    except:
-                        pass
-                
-                # Sleep briefly to allow audio to clear
-                time.sleep(0.2)
-                
-                # Now delete the FluidSynth instance
-                try:
-                    fs.delete()
-                except Exception as e:
-                    print(f"Error deleting FluidSynth: {e}")
-                    pass
-            finally:
-                fs = None
-        # Wait for threads to finish with timeout
-        max_wait_time = 5.0  # Increase timeout for thread joining
-
-
-        # Clear the thread list
-        self.running_threads.clear()
-        
-
-
-        '''
-        # Reset UI
-        self.status_label.text = 'Ready to play'
-        self.start_button.disabled = False
-        self.mode_spinner.disabled = False
-        self.tempo_slider.disabled = False
-        
-
-    def __del__(self):
-        try:
-            global fs
-            if fs is not None:
-                # Ensure we properly clean up FluidSynth when the app closes
-                for channel in [0, 9, 10]:
-                    try:
-                        fs.all_notes_off(channel)
-                        fs.all_sounds_off(channel)
-                    except:
-                        pass
-                
-                # Sleep briefly to allow audio to clear
-                try:
-                    time.sleep(0.1)
-                except:
-                    pass
-                    
-                try:
-                    fs.delete()
-                except:
-                    pass
-                fs = None
-                
-            if pygame.midi.get_init():
-                try:
-                    pygame.midi.quit()
-                except:
-                    pass
         except Exception as e:
             print(f"Error during cleanup in __del__: {e}")
 
