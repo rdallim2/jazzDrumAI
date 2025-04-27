@@ -95,6 +95,7 @@ drum_comp_vs_time_matrix = [
 ]
 
 def choose_next_phrase(tempo, player_count):
+    print("In choose_next_phrase")
     if player_count == 0:
         density = ['8', 't8']
         volume = ['l', 'h']
@@ -150,6 +151,7 @@ def run_drums(time_per_beat, tempo, player_count):
     curr_density = '8'
     curr_vol = '0'
     while True:
+        print("new phrase selected")
         instrument_sync.set()
         if comp_choice == 'n':  
             swing_pattern(fs, time_per_beat)

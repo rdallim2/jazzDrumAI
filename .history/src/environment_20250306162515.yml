@@ -1,0 +1,18 @@
+name: jazzdrumAI
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - pygame=2.5.2
+  - kivy=2.2.1
+  - pip:
+    - mido==1.3.2
+    - pyfluidsynth==1.3.2
+    - python-rtmidi==1.5.6
+    - kivy-garden
+    - magenta==2.1.4
+    - tensorflow==2.13.0
+    - pretty_midi==0.2.10
+    - note_seq==0.0.5 

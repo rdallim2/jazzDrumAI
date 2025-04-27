@@ -48,6 +48,9 @@ class DrumMachineGUI(BoxLayout):
         self.input_device = None
         self.current_bar = 0  # Track current bar for chord display
 
+        # Register the bar update callback
+        register_bar_update_callback(self.on_bar_changed)
+
         # Set dark mode background
         with self.canvas.before:
             # Dark background (almost black)
@@ -103,7 +106,7 @@ class DrumMachineGUI(BoxLayout):
             font_name='Roboto',
             font_size='20sp',
             bold=True,
-            color=(0.6, 0.8, 1.0, 1),  # Light blue
+            color=(0.4, 0.8, 1.0, 1),  # Bright baby blue
             size_hint_y=None,
             height=40
         )
@@ -151,7 +154,8 @@ class DrumMachineGUI(BoxLayout):
         
         # First line (bars 1-4)
         line1 = BoxLayout(size_hint_y=None, height=45)
-        for i in range(4):
+        chords1 = ['C7', 'F7', 'C7', 'C7']
+        for i, chord in enumerate(chords1):
             bar_num = Label(
                 text=f"{i+1}",
                 font_name='Roboto',
@@ -163,7 +167,7 @@ class DrumMachineGUI(BoxLayout):
             line1.add_widget(bar_num)
             
             measure = Button(
-                text='C7',
+                text=chord,
                 **measure_style
             )
             line1.add_widget(measure)
@@ -388,7 +392,7 @@ class DrumMachineGUI(BoxLayout):
             text='Ready to play',
             font_name='Roboto',
             font_size='16sp',
-            color=(0.8, 0.8, 0.8, 1),  # Light gray text
+            color=(1.0, 1.0, 1.0, 1),  # Pure white text
             bold=True
         )
         status_layout.add_widget(self.status_label)
@@ -436,7 +440,7 @@ class DrumMachineGUI(BoxLayout):
             # Initialize FluidSynth with error handling
             fs = fluidsynth.Synth()
             fs.start(driver="coreaudio")
-            fs.setting('synth.gain', 1.35)
+            fs.setting('synth.gain', 1.99)
 
             # Initialize pygame MIDI
             try:
@@ -468,13 +472,13 @@ class DrumMachineGUI(BoxLayout):
 
             try:
                 # Load SoundFont for drum sounds and set up on channel 0
-                drum_sfid = fs.sfload("drums_for_ai_v9.sf2")
+                drum_sfid = fs.sfload("drums_for_ai_v11.sf2")
                 if drum_sfid == -1:
                     raise Exception("Failed to load drum SoundFont")
                 
                 fs.sfont_select(0, drum_sfid)  # Select drum soundfont for channel 0
                 fs.program_select(0, drum_sfid, 0, 0)  # Set up drums on channel 0, bank 0, preset 0
-                fs.cc(0, 7, 100)  # Set drum volume
+                fs.cc(0, 7, 120)  # Set drum volume
             except Exception as e:
                 print(f"Error setting up drums: {e}")
                 
@@ -496,46 +500,30 @@ class DrumMachineGUI(BoxLayout):
             curr_vol = '0'
             while not stop_event.is_set():
                 try:
-                    #print("clearing")
-                    swing_pattern(fs, time_per_beat, trip_spacing)
-                    
-                    #instrument_sync.set()
-                    # Execute the current pattern
-                    #instrument_sync.clear()
                     if comp_choice == 'n':  
-                        #print("clearing")
                         swing_pattern(fs, time_per_beat, trip_spacing)
                     else:
                         if curr_density == '8':
                             if curr_vol == 'l':
                                 eigth_phrases = [s8_s_one, s8_s_two, s8_b_one]
-                                #print("clearing")
                                 random.choice(eigth_phrases)(fs, time_per_beat, trip_spacing)
                             elif curr_vol == 'm':
                                 s8_med_phrases = [s8_s_one, s8_s_two, s8_b_one, s8_s_two, s8_s_three, s8_s_four, s8_s_five, s8_s_six, s8_s_seven, s8_s_eight, s8_b_one, s8_b_two, s8_b_three, s8_b_four, s8_b_five, s8_b_six, s8_b_seven, s8_b_eight]
-                                #rint("clearing")
                                 random.choice(s8_med_phrases)(fs, time_per_beat, trip_spacing)
                             else:
-                                s8_high_phrases = [s8_crash_one, s8_crash_two, s8_s_one, s8_s_two, s8_b_one, s8_s_two]
-                                #print("clearing")
+                                s8_high_phrases = [s8_crash_one, s8_crash_two, s8_s_eight, s8_s_two, s8_b_four, s8_s_two]
                                 random.choice(s8_high_phrases)(fs, time_per_beat, trip_spacing)
                         elif curr_density == 't8':
                             if curr_vol == 'l':
                                 t_eighth_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four]
-                                #print("clearing")
                                 random.choice(t_eighth_phrases)(fs, time_per_beat)
                             elif curr_vol == 'm': 
                                 t_med_phrases = [t8_s_one, t8_s_two, t8_s_three, t8_s_four, t8_b_one, t8_b_two, t8_b_three, t8_b_four, t8_crash_one, t8_crash_two]
-                                #print("clearing")
                                 random.choice(t_med_phrases)(fs, time_per_beat)
                             else:
-                                t_high_phrases = [t8_crash_one, t8_crash_two, t8_crash_three, t8_s_one, t8_s_two, t8_s_three]
-                                #print("clearing")
+                                t_high_phrases = [t8_crash_one, t8_crash_two, t8_crash_three, t8_b_one, t8_s_two, t8_s_three]
                                 random.choice(t_high_phrases)(fs, time_per_beat)
 
-                    # Signal that a phrase has completed
-
-                    # Calculate remaining time in bar
 
                     # Choose next pattern
                     current_state = choose_next_phrase(tempo, players)
@@ -882,14 +870,18 @@ class DrumMachineGUI(BoxLayout):
                 measure.background_color = (0.22, 0.22, 0.25, 1)  # Default dark blue-gray
                 measure.color = (0.9, 0.9, 0.9, 1)  # Reset to default light gray text
                 
+            # If bar_index is -1, just reset all measures and return
+            if bar_index == -1:
+                return
+                
             # Calculate current index (0-11)
             current_index = bar_index % 12
             
             # Highlight the current bar in the lead sheet
             if 0 <= current_index < len(self.measure_buttons):
-                # Highlight in the lead sheet
-                self.measure_buttons[current_index].background_color = (0.5, 0.7, 1.0, 1)  # Bright blue highlight
-                self.measure_buttons[current_index].color = (1, 1, 1, 1)  # Bright white text
+                # Highlight the entire button with bright blue
+                self.measure_buttons[current_index].background_color = (0.4, 0.8, 1.0, 1)  # Bright baby blue
+                self.measure_buttons[current_index].color = (1.0, 0.6, 0.0, 1)  # Bright orange text
             
             # Save the current bar for future reference
             self.current_bar = bar_index
@@ -908,9 +900,9 @@ class DrumMachineGUI(BoxLayout):
         tempo = self.tempo_slider.value
         time_per_bar = (60 / tempo) * 4  # 4 beats per bar
         
-        # We'll schedule the reset to happen slightly before the next bar
-        # to ensure smooth transitions
-        reset_time = max(0.1, time_per_bar * 0.85)  # 85% of bar duration
+        # Schedule the reset to happen at the end of the bar
+        # We'll use a slightly shorter time to ensure smooth transitions
+        reset_time = max(0.1, time_per_bar * 0.95)  # 95% of bar duration
         Clock.schedule_once(lambda dt: self.update_chord_display(-1), reset_time)
 
 class DrumMachineApp(App):
