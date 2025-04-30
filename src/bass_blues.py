@@ -4,32 +4,37 @@ import threading
 
 from sync import instrument_sync, stop_event
 from chord_scale_maps import * 
+from kivy.event import EventDispatcher
 
 # Global variable for tracking current bar
 bar_count = 0
 
-# List to store callback functions for bar updates
-bar_update_callbacks = []
+# Global variable to store reference to the music engine instance
+music_engine_instance = None
 
-def register_bar_update_callback(callback_func):
-    """Register a function to be called when the bar changes"""
-    if callback_func not in bar_update_callbacks:
-        bar_update_callbacks.append(callback_func)
-        print(f"Registered callback: {callback_func.__name__}")
+def reset_bar_count():
+    """Reset the bar counter to 0 to restart the musical form"""
+    global bar_count
+    bar_count = 0
+    print("Musical form reset to beginning")
 
-def unregister_bar_update_callback(callback_func):
-    """Unregister a previously registered callback function"""
-    if callback_func in bar_update_callbacks:
-        bar_update_callbacks.remove(callback_func)
-        print(f"Unregistered callback: {callback_func.__name__}")
+def set_music_engine(engine):
+    """Set the global music engine instance for notifications"""
+    global music_engine_instance
+    music_engine_instance = engine
+    print("Music engine registered for bar updates")
 
 def notify_bar_update(current_bar):
-    """Notify all registered callbacks about the bar update"""
-    for callback in bar_update_callbacks:
+    """Dispatch bar update event to the music engine"""
+    global music_engine_instance
+    if music_engine_instance:
         try:
-            callback(current_bar)
+            # Dispatch the on_bar_change event with the current bar number
+            music_engine_instance.dispatch('on_bar_change', current_bar)
         except Exception as e:
-            print(f"Error in bar update callback: {e}")
+            print(f"Error dispatching bar event: {e}")
+    else:
+        print("Warning: No music engine registered for bar updates")
 
 # Define the 12-bar blues progression in C
 blues_progression = [

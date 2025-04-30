@@ -187,7 +187,9 @@
         value: 120
         size_hint_y: None
         height: 50
-        on_value: label1.text = "Tempo: " + str(int(self.value))
+        on_value: 
+            label1.text = "Tempo: " + str(int(self.value))
+            root.tempo = int(self.value)
         background_width: 0
         background_horizontal: ''
         cursor_size: (0, 0)
@@ -223,8 +225,9 @@
     Spinner:
         id: my_dropdown        
         font_name: 'fonts/Chivo-Regular.ttf'
-        text: 'Choose Option'
-        values: ['Option 1', 'Option 2', 'Option 3']
+        text: 'Drums/Bass'
+        values: ['Drums/Bass', 'Drums/Bass/Piano']
+        on_text: root.on_mode_selected(self, self.text)
         size_hint_y: .5
         height: 50
         background_normal: ''

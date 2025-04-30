@@ -8,17 +8,20 @@ import threading
 import fluidsynth
 import pygame.midi
 import mido
+from kivy.event import EventDispatcher
 from new_app import *
 from bass_blues import *
 from piano_comp import *
 from sync import stop_event, instrument_sync
-from bass_blues import register_bar_update_callback, unregister_bar_update_callback
 
-class MusicEngine:
+class MusicEngine(EventDispatcher):
     def __init__(self):
+        super(MusicEngine, self).__init__()
+        # Register the bar change event
+        self.register_event_type('on_bar_change')
+        
         self.fs = None
         self.running_threads = []
-        self.bar_update_callbacks = []
         self.output_device = None
         self.input_device = None
         
@@ -371,9 +374,6 @@ class MusicEngine:
         except Exception as e:
             print(f"Error during cleanup in __del__: {e}")
             
-    def register_bar_change_listener(self, callback):
-        # Allow UI to register for updates
-        register_bar_update_callback(callback)
-        
-    def unregister_bar_change_listener(self, callback):
-        unregister_bar_update_callback(callback)
+    def on_bar_change(self, bar_num):
+        # Default handler (does nothing, will be overridden by bindings)
+        pass
