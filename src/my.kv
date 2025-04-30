@@ -1,0 +1,259 @@
+<MyLayout>:
+    orientation: 'vertical'
+    padding: 20
+    spacing: 10
+
+    Label:
+        text: '[size=72]Jazz-Drum AI[/size]\n[size=48]C Blues[/size]'
+        markup: True
+        font_name: 'fonts/Chivo-Regular.ttf'
+        font_size: '30sp'
+        size_hint_y: None
+        height: self.texture_size[1] + 40
+        text_size: self.width, None
+        halign: 'center'
+        valign: 'middle'
+
+
+    GridLayout:
+        cols: 4
+        rows: 3
+        spacing: 5
+        font_name: 'fonts/Chivo-Regular.ttf'
+        size_hint_y: 1
+        size_hint_x: 1
+        height: 300
+        Button:
+            text: 'C7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0  
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1  
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'F7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0  
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1 
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'C7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0 
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1  
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'C7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0 
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1 
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'F7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0 
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1  
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'F7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0  
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1 
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'C7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0 
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1 
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'C7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1  
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'G7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0 
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1 
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'F7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1 
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'C7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0 
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1 
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+        Button:
+            text: 'C7'
+            font_name: 'fonts/Chivo-Regular.ttf'
+            font_size: '22sp'
+            background_normal: ''
+            background_color: 0, 0, 0, 0 
+            canvas.before:
+                Color:
+                    rgba: 42/255, 50/255, 63/255, 1  
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [10]
+
+    Slider:
+        id: my_slider
+        min: 60
+        max: 360
+        value: 120
+        size_hint_y: None
+        height: 50
+        on_value: label1.text = "Tempo: " + str(int(self.value))
+        background_width: 0
+        background_horizontal: ''
+        cursor_size: (0, 0)
+        canvas.before:
+            # Track background
+            Color:
+                rgba: 0.2, 0.2, 0.2, 1
+            RoundedRectangle:
+                pos: self.x, self.center_y - 8
+                size: self.width, 16
+                radius: [8]
+            # Progress bar
+            Color:
+                rgba: 83/255, 130/255, 207/255, 1  
+            RoundedRectangle:
+                pos: self.x, self.center_y - 8
+                size: (self.value_pos[0] - self.x), 16
+                radius: [8]  
+            # Knob
+            Color:
+                rgba: 0.9, 0.9, 0.9, 1 
+            Ellipse:
+                pos: self.value_pos[0] - 14, self.center_y - 14
+                size: 28, 28
+
+    Label:
+        id: label1
+        font_size: "20sp"
+        text: "Tempo: 120"
+        color: 1, 1, 1, 1
+        size_hint_y: None
+
+    Spinner:
+        id: my_dropdown        
+        font_name: 'fonts/Chivo-Regular.ttf'
+        text: 'Choose Option'
+        values: ['Option 1', 'Option 2', 'Option 3']
+        size_hint_y: .5
+        height: 50
+        background_normal: ''
+        background_color: 0, 0, 0, 0
+        option_cls: 'SpinnerOption'
+        font_name: 'fonts/Chivo-Regular.ttf'
+        font_size: '18sp'
+        canvas.before:
+            Color:
+                rgba: [83 / 255, 130 / 255, 207 / 255, 1.0]
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [10]
+
+    Button:
+        text: 'Play / Pause'
+        font_name: 'fonts/Chivo-Regular.ttf'
+        font_size: '18sp'
+        size_hint: 1, .5
+        size: 150, 50
+        background_normal: ''
+        background_down: ''
+        background_color: 0, 0, 0, 0
+        on_press: app.play_pause()
+        canvas.before:
+            Color:
+                rgba: [83 / 255, 130 / 255, 207 / 255, 1.0]
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [15]
